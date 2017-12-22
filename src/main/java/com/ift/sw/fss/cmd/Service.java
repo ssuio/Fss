@@ -1,0 +1,38 @@
+package com.ift.sw.fss.cmd;
+
+import com.ift.sw.fss.FSSAgent;
+import com.ift.sw.fss.FSSCommander;
+import com.ift.sw.fss.FSSException;
+import com.ift.sw.fss.FSSTag;
+import com.ift.sw.fss.cmd.FSSCmd;
+import org.json.JSONObject;
+
+@FSSTag(key = "service")
+public class Service extends FSSCmd {
+    public Service(FSSAgent fss, String cmd) throws FSSException {
+        super(fss, cmd);
+    }
+
+    @Override
+    protected void beforeExecute() throws FSSException {
+        switch (cmdArr[1]) {
+            case "options":
+                this.setCmd(FSSCommander.formatDoubleQuote(cmd));
+        }
+    }
+
+    @Override
+    public JSONObject parse(String oriResp) throws Exception {
+        this.setOptions(OP_SHOW_LIST);
+        switch (cmdArr[1]) {
+            case "options":
+            case "start":
+            case "stop":
+            case "restart":
+                return FSSCommander.generalSetCmdParser(oriResp, BOTH_SLOT);
+            case "status":
+                return FSSCommander.serviceStatusGetCmdParser(oriResp);
+        }
+        throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
+    }
+}
