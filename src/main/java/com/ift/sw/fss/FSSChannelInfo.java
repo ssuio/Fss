@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class FSSChannelInfo{
+public class FSSChannelInfo extends ReentrantLock{
     public static final short GET = 0;
     public static final short SET = 1;
     public static final short EXT = 2;
@@ -16,8 +16,7 @@ public class FSSChannelInfo{
     private ByteBuffer buffer = ByteBuffer.allocate(6144);
     private byte[] result;
     private int dataLength;
-    private ReentrantLock lock = new ReentrantLock();
-    private Condition con = lock.newCondition();
+    private Condition con = this.newCondition();
 
     public FSSChannelInfo(Object serviceId, short type) {
         this.serviceId = serviceId;
@@ -69,13 +68,13 @@ public class FSSChannelInfo{
         con.signalAll();
     }
 
-    public void lock(){
-        lock.lock();
-    }
-
-    public void unlock(){
-        lock.unlock();
-    }
+//    public void lock(){
+//        lock.lock();
+//    }
+//
+//    public void unlock(){
+//        lock.unlock();
+//    }
 
     @Override
     public String toString() {

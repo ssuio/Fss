@@ -74,10 +74,6 @@ public class Pagelist extends FSSCmd {
     @Override
     public String getAssigmentVal() throws Exception {
         switch (cmdArr[1]) {
-            case "folder":
-                if (cmdArr.length != 2) {
-                    return FSSCommander.formatPathAssignment(cmdArr[2]);
-                }
             case "user":
             case "group":
                 if (cmdArr[2].equalsIgnoreCase("slotA") || cmdArr[2].equalsIgnoreCase("slotB")) {

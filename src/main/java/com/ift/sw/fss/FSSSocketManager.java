@@ -8,6 +8,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static java.nio.channels.SelectionKey.OP_READ;
 
@@ -19,6 +20,7 @@ public class FSSSocketManager implements Runnable {
     public static final int EXT_TIMEOUT = 60;
     public static boolean isSSL;
     public static volatile Selector selector;
+    private static ReentrantLock registerLock = new ReentrantLock();
 
     static {
         try {
@@ -34,11 +36,15 @@ public class FSSSocketManager implements Runnable {
         try {
             SocketChannel channel = SocketChannel.open(new InetSocketAddress(ip, isSSL ? FSSCMD_SSL_PORT : FSSCMD_PORT));
             channel.configureBlocking(false);
+            registerLock.lock();
+            selector.wakeup();
             key = channel.register(selector, OP_READ, info);
             Tool.printDebugMsg(info.toString() + " register succ.");
         } catch (IOException e) {
             Tool.printErrorMsg(info.toString() + " register failed.", e);
             throw new FSSException("Ext channel register failed.");
+        } finally {
+            registerLock.unlock();
         }
         return key;
     }
@@ -130,7 +136,7 @@ public class FSSSocketManager implements Runnable {
     public void run() {
         try {
             for (; ; ) {
-                while (selector.selectNow() > 0) {
+                while (selector.select() > 0) {
                     Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
                     while (iterator.hasNext()) {
                         SelectionKey key = iterator.next();
@@ -148,6 +154,11 @@ public class FSSSocketManager implements Runnable {
                         }
                         iterator.remove();
                     }
+                }
+                try {
+                    registerLock.lock();
+                } finally {
+                    registerLock.unlock();
                 }
             }
         } catch (IOException e) {
