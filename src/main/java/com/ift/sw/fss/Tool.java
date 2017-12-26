@@ -1,6 +1,48 @@
 package com.ift.sw.fss;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
+
 public class Tool {
+    private static Logger log = Logger.getLogger("fss_log");
+    // Print all msg using logger mechanism.
+    public static void printDebugMsg(Object msg){
+        log.debug(msg);
+    }
+    public static void printDebugMsg(Object msg, Throwable e){
+        log.debug(msg , e);
+    }
+    public static void printInfoMsg(Object msg){
+        log.info(msg);
+    }
+    public static void printInfoMsg(Object msg, Throwable e){
+        log.info(msg, e);
+    }
+    public static void printWarnMsg(Object msg){
+        log.warn(msg);
+    }
+    public static void printWarnMsg(Object msg, Throwable e){
+        log.warn(msg, e);
+    }
+    public static void printErrorMsg(Object msg){
+        log.error(msg);
+    }
+    public static void printErrorMsg(Object msg, Throwable e){
+        log.error(msg , e);
+    }
+    public static void printFatalMsg(Object msg){
+        log.fatal(msg);
+    }
+    public static void printFatalMsg(Object msg, Throwable e){
+        log.fatal(msg , e);
+    }
+
+    static {
+        try {
+            PropertyConfigurator.configureAndWatch("fss_log.properties");
+        } catch (Exception e) {}
+    }
+
     public static int getInt(byte[] b, int offset, int len) {
         int v = 0;
         if (b == null) {

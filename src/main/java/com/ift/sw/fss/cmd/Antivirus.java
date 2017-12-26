@@ -103,7 +103,7 @@ public class Antivirus extends FSSCmd {
                 if (cmdArr.length == 2 || (cmdArr.length > 4 && !"-d".equalsIgnoreCase(cmdArr[2]))) {
 
                 } else {
-                    return cmdArr[Arrays.asList(cmdArr).indexOf("-f") + 1];
+                    return FSSCommander.formatPathAssignment(cmdArr[Arrays.asList(cmdArr).indexOf("-f") + 1]);
                 }
                 break;
             case "options":

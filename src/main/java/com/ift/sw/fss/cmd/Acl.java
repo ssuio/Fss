@@ -13,18 +13,10 @@ public class Acl extends FSSCmd {
     }
 
     @Override
-    protected void beforeExecute() throws FSSException {
-        switch (cmdArr[1]) {
-            case "set":
-            case "delete":
-                this.setCmd(cmd.replace("\\\"", "\\\\\""));
-        }
-    }
-
-    @Override
     public JSONObject parse(String oriResp) throws Exception {
         switch (cmdArr[1]) {
             case "set":
+                return FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
             case "delete":
             case "get":
                 return FSSCommander.generalGetCmdParser(oriResp, "id");
@@ -37,8 +29,10 @@ public class Acl extends FSSCmd {
     public String getAssigmentVal() throws Exception {
         switch (cmdArr[1]) {
             case "set":
+                this.setCmd(cmd.replace("\\\"", "\\\\\""));
             case "delete":
-                return cmdArr[2];
+            case "get":
+                return FSSCommander.formatPathAssignment(cmdArr[2]);
         }
         return FSSCommander.BOTH_SLOT;
     }

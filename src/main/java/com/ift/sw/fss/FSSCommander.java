@@ -43,12 +43,25 @@ public class FSSCommander {
         }
     }
 
+    public static String formatOutPutStr(String result) throws FSSException {
+        int startIdx = result.indexOf("\r\n{");
+        int endIdx = result.lastIndexOf("}\r\n");
+        if (startIdx==-1 || endIdx==-1){
+            throw new FSSException("getOutPutStr failed");
+        }
+        return result.substring(startIdx+2, endIdx+1);
+    }
+
     public static String rmCmdSlots(String cmd) {
         return cmd.replaceAll("slotA", "").replaceAll("slotB", "");
     }
 
     public static String formatDoubleQuote(String cmd) {
         return cmd.replace("\\\"", "\\\\\"").replace("\"", "\\\"");
+    }
+
+    public static String formatPathAssignment(String assignment){
+        return assignment.split("/")[1];
     }
 
     public static String[] cmdSplit(String strParams) {
@@ -101,7 +114,7 @@ public class FSSCommander {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        throw new FSSException("generateFSSCmd failed.");
+        throw new FSSException(MessageFormat.format("GenerateFSSCmd instance failed. [{0}]",cmd));
     }
 
     public static JSONObject generalSetCmdParser(String cmdResp, boolean isBothSlot) throws JSONException {

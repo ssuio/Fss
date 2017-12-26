@@ -40,7 +40,10 @@ public class Disk extends FSSCmd {
                 JSONObject obj = FSSCommander.generalGetCmdParser(Resp, "diskID");
                 JSONArray diskList = obj.getJSONArray("data");
                 obj = diskList.getJSONObject(0); // get first object
+                setOptions(FSSCmd.OP_USE_VVID);
                 return obj.getString("serial");
+            case "scan":
+                setOptions(OP_USE_VVID);
         }
         return FSSCommander.BOTH_SLOT;
     }

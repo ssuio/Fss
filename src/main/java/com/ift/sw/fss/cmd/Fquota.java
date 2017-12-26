@@ -35,4 +35,15 @@ public class Fquota extends FSSCmd {
         throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
     }
 
+    @Override
+    public String getAssigmentVal() throws Exception {
+        switch (cmdArr[1]) {
+            case "create":
+            case "delete":
+                this.setOptions(OP_USE_VVID);
+                return cmdArr[2];
+        }
+        return FSSCommander.BOTH_SLOT;
+    }
+
 }

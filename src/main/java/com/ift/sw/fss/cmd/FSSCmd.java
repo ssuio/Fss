@@ -3,12 +3,16 @@ package com.ift.sw.fss.cmd;
 import com.ift.sw.fss.FSSAgent;
 import com.ift.sw.fss.FSSCommander;
 import com.ift.sw.fss.FSSException;
+import com.ift.sw.fss.Tool;
 import org.json.JSONObject;
+
+import java.text.MessageFormat;
 
 public abstract class FSSCmd {
     public static final short SET = 0;
     public static final short GET = 1;
     public static final short EXT = 2;
+    public static final short CLI = 3;
     public static final boolean BOTH_SLOT = true;
     public static final boolean SINGLE_SLOT = false;
     public static int OP_USE_VVID = 1 << 0;
@@ -34,7 +38,7 @@ public abstract class FSSCmd {
             this.assignVal = getAssigmentVal();
         } catch (Exception e) {
             e.printStackTrace();
-            throw new FSSException("Get assignmentVal failed. " + e.toString());
+            throw new FSSException("Get assignmentVal failed. "+ this.toString() + e.toString());
         }
     }
 
@@ -55,12 +59,14 @@ public abstract class FSSCmd {
         return slot;
     }
 
-    public void setSlot(String slot) {
+    public FSSCmd setSlot(String slot) {
         this.slot = slot;
+        return this;
     }
 
-    public void setCmdType(short cmdType) {
+    public FSSCmd setCmdType(short cmdType) {
         this.cmdType = cmdType;
+        return this;
     }
 
     public short getCmdType() {
@@ -78,12 +84,13 @@ public abstract class FSSCmd {
             setCmdOnly(cmd.replace("slotB", ""));
         }
         String oriResp = fss.execute(this);
+        Tool.printDebugMsg(MessageFormat.format("{0} res: {1}", this.toString(), oriResp));
         JSONObject obj = null;
         try {
             obj = parse(oriResp);
         } catch (Exception e) {
             e.printStackTrace();
-            throw new FSSException("Parse oriResp failed. " + e.toString());
+            throw new FSSException(MessageFormat.format("Parse oriResp failed. {0} res: {1}", this.toString(), oriResp));
         }
         return isHandleBgJob() ? this.handleBgJob(obj) : obj;
     }
@@ -148,8 +155,9 @@ public abstract class FSSCmd {
         return (ops & OP_HANDLE_BG) != 0;
     }
 
-    public void setHandleBgJob(boolean handleBgJob) {
+    public FSSCmd setHandleBgJob(boolean handleBgJob) {
         ops = handleBgJob ? ops|OP_HANDLE_BG : ops^OP_HANDLE_BG;
+        return this;
     }
 
     public short getOutPutType() {

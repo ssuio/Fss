@@ -10,7 +10,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileOutputStream;
 
-@FSSTag(key = "Folder")
+@FSSTag(key = "folder")
 public class Folder extends FSSCmd {
     public Folder(FSSAgent fss, String cmd) throws FSSException {
         super(fss, cmd);
@@ -61,15 +61,17 @@ public class Folder extends FSSCmd {
     public String getAssigmentVal() throws Exception {
         switch (cmdArr[1]) {
             case "options":
+                this.setOptions(OP_USE_VVID);
                 if (cmd.contains("export=")) {
                     this.setCmd(cmd.replace(cmdArr[cmdArr.length - 1], ""));
                 }
                 return cmdArr[2];
             case "create":
+                this.setOptions(OP_USE_VVID);
                 return cmdArr[2];
             case "usedsize":
                 if (cmdArr.length != 2) {
-                    return cmdArr[3];
+                    return cmdArr[3].split("/")[1];
                 }
         }
         return FSSCommander.BOTH_SLOT;

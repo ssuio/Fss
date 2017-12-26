@@ -1,19 +1,26 @@
 package com.ift.sw.fss;
 
+import java.lang.annotation.Retention;
 import java.nio.ByteBuffer;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
-public class FSSChannelInfo implements Runnable {
+public class FSSChannelInfo{
     public static final short GET = 0;
     public static final short SET = 1;
     public static final short EXT = 2;
-    private Object raidCmd;
+    public static final short CLI = 3;
+    private Object serviceId;
     private short type;
     private ByteBuffer buffer = ByteBuffer.allocate(6144);
     private byte[] result;
     private int dataLength;
+    private ReentrantLock lock = new ReentrantLock();
+    private Condition con = lock.newCondition();
 
-    public FSSChannelInfo(Object raidCmd, short type) {
-        this.raidCmd = raidCmd;
+    public FSSChannelInfo(Object serviceId, short type) {
+        this.serviceId = serviceId;
         this.type = type;
     }
 
@@ -22,7 +29,7 @@ public class FSSChannelInfo implements Runnable {
     }
 
     public Object getObject() {
-        return raidCmd;
+        return serviceId;
     }
 
     public ByteBuffer getBuffer() {
@@ -34,13 +41,7 @@ public class FSSChannelInfo implements Runnable {
     }
 
     public String getOutPutStr() throws FSSException {
-        String resultStr = new String(result);
-        int startIdx = resultStr.indexOf("\r\n{");
-        int endIdx = resultStr.lastIndexOf("}\r\n");
-        if (startIdx==-1 || endIdx==-1){
-            throw new FSSException("getOutPutStr failed");
-        }
-        return resultStr.substring(startIdx+2, endIdx+1);
+        return FSSCommander.formatOutPutStr(new String(result));
     }
 
     public void setResult(byte[] result) {
@@ -60,8 +61,27 @@ public class FSSChannelInfo implements Runnable {
         this.result = new byte[]{};
     }
 
-    @Override
-    public void run() {
+    public boolean await(int sec) throws InterruptedException {
+        return con.await(sec, TimeUnit.SECONDS);
+    }
 
+    public void signalAll(){
+        con.signalAll();
+    }
+
+    public void lock(){
+        lock.lock();
+    }
+
+    public void unlock(){
+        lock.unlock();
+    }
+
+    @Override
+    public String toString() {
+        return "FSSChannelInfo{" +
+                "serviceId=" + serviceId +
+                ", type=" + type +
+                '}';
     }
 }

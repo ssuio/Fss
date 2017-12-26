@@ -31,9 +31,9 @@ public class Share extends FSSCmd {
             case "status":
                 return FSSCommander.BOTH_SLOT;
             case "options":
-                return cmdArr[2];
+                return FSSCommander.formatPathAssignment(cmdArr[2]);
             default:
-                return cmdArr[1];
+                return FSSCommander.formatPathAssignment(cmdArr[1]);
         }
     }
 }
