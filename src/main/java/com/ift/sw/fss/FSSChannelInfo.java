@@ -1,24 +1,25 @@
 package com.ift.sw.fss;
 
-import java.lang.annotation.Retention;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class FSSChannelInfo extends ReentrantLock{
+public class FSSChannelInfo extends ReentrantLock {
     public static final short GET = 0;
     public static final short SET = 1;
     public static final short EXT = 2;
     public static final short CLI = 3;
     private Object serviceId;
+    private String ip;
     private short type;
     private ByteBuffer buffer = ByteBuffer.allocate(6144);
     private byte[] result;
     private int dataLength;
     private Condition con = this.newCondition();
 
-    public FSSChannelInfo(Object serviceId, short type) {
+    public FSSChannelInfo(Object serviceId, String ip, short type) {
+        this.ip = ip;
         this.serviceId = serviceId;
         this.type = type;
     }
@@ -27,7 +28,7 @@ public class FSSChannelInfo extends ReentrantLock{
         return type;
     }
 
-    public Object getObject() {
+    public Object getServiceIdObj() {
         return serviceId;
     }
 
@@ -64,22 +65,23 @@ public class FSSChannelInfo extends ReentrantLock{
         return con.await(sec, TimeUnit.SECONDS);
     }
 
-    public void signalAll(){
+    public void signalAll() {
         con.signalAll();
     }
 
-//    public void lock(){
-//        lock.lock();
-//    }
-//
-//    public void unlock(){
-//        lock.unlock();
-//    }
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
 
     @Override
     public String toString() {
         return "FSSChannelInfo{" +
                 "serviceId=" + serviceId +
+                "ip=" + ip +
                 ", type=" + type +
                 '}';
     }
