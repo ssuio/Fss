@@ -1,8 +1,5 @@
-package com.ift.sw.fss.cmd;
+package com.ift.sw.fss;
 
-import com.ift.sw.fss.FSSAgent;
-import com.ift.sw.fss.FSSSocketManager;
-import com.ift.sw.fss.Tool;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -25,15 +22,15 @@ public class FSSRetryer implements Runnable {
                 info = infoQueue.peek();
                 if (info != null) {
                     FSSSocketManager.closeSingle(info);
-                    Tool.printErrorMsg(info.toString()+" reconnect...");
+                    Tool.printErrorMsg(info.toString() + " reconnect...");
                     FSSSocketManager.register(info);
                 }
                 infoQueue.poll();
             } catch (Exception e) {
                 Tool.printErrorMsg("Retry failed.", e);
-                synchronized (infoQueue){
+                synchronized (infoQueue) {
                     try {
-                        infoQueue.wait(600*1000); //Retry failed wait 10 mins.
+                        infoQueue.wait(600 * 1000); //Retry failed wait 10 mins.
                     } catch (InterruptedException e1) {
                         e1.printStackTrace();
                     }
@@ -41,7 +38,7 @@ public class FSSRetryer implements Runnable {
                 e.printStackTrace();
             }
         }
-        if(info != null){
+        if (info != null) {
             FSSSocketManager.closeSingle(info);
         }
     }
@@ -55,7 +52,7 @@ public class FSSRetryer implements Runnable {
         }
     }
 
-    public boolean isRetrying(){
+    public boolean isRetrying() {
         return isRetrying;
     }
 
@@ -65,7 +62,7 @@ public class FSSRetryer implements Runnable {
 
     public void setRetry(boolean retry) {
         this.retry = retry;
-        synchronized (infoQueue){
+        synchronized (infoQueue) {
             infoQueue.notifyAll();
         }
     }

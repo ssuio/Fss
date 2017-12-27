@@ -1,7 +1,6 @@
 package com.ift.sw.fss;
 
 import com.ift.sw.fss.cmd.FSSCmd;
-import com.ift.sw.fss.cmd.FSSRetryer;
 
 import java.io.IOException;
 
