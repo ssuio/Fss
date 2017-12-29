@@ -8,17 +8,16 @@ public class FSSAgent {
     private String serviceId;
     private String ip;
     private String cliver;
-    private boolean isCLIMode;
     private FSSRetryer retryer = new FSSRetryer();
+    public FSSTraveler traveler;
 
-    public FSSAgent(String ip, String serviceId, boolean isCLIMode) throws IOException, FSSException, InterruptedException {
+    public FSSAgent(String ip, String serviceId, FSSTraveler traveler) throws IOException, FSSException, InterruptedException {
         this.serviceId = serviceId;
         this.ip = ip;
-        this.isCLIMode = isCLIMode;
+        this.traveler = traveler;
         try {
             this.connect(FSSChannelInfo.GET);
             this.connect(FSSChannelInfo.SET);
-
             new Thread(retryer, "FSSRetryer-" + ip.replaceAll("\\.", "_")).start();
 
             //Get NAS cli version

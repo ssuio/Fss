@@ -11,7 +11,7 @@ public class Fquota extends FSSCmd {
     }
 
     @Override
-    protected void beforeExecute() throws FSSException {
+    public void beforeExecute() throws FSSException {
         switch (cmdArr[1]) {
             case "status":
                 this.setCmd(FSSCommander.formatDoubleQuote(cmd));

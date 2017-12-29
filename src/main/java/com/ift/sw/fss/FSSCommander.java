@@ -52,6 +52,16 @@ public class FSSCommander {
         return result.substring(startIdx+2, endIdx+1);
     }
 
+    public static String formatAssignCmd(String cmd, String assignVal) throws FSSException {
+        String finalCmd = cmd;
+        if (assignVal.equals("slotA")) {
+            finalCmd = cmd.replace("slotA", "");
+        } else if (assignVal.equals("slotB")) {
+            finalCmd = cmd.replace("slotB", "");
+        }
+        return finalCmd;
+    }
+
     public static String rmCmdSlots(String cmd) {
         return cmd.replaceAll("slotA", "").replaceAll("slotB", "");
     }

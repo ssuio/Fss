@@ -13,7 +13,7 @@ public class IPBlock extends FSSCmd {
     }
 
     @Override
-    protected void beforeExecute() throws FSSException {
+    public void beforeExecute() throws FSSException {
         if (cmdArr[1].equalsIgnoreCase("addfail")) {
             this.setCmd(cmd.replace("\\\"", "\\\\\"").replace("\"", "\\\""));
         }

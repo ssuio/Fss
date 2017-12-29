@@ -13,7 +13,7 @@ public class ScheduleRR extends FSSCmd {
     }
 
     @Override
-    protected void beforeExecute() throws FSSException {
+    public void beforeExecute() throws FSSException {
         this.setCmd(FSSCommander.formatDoubleQuote(cmd));
     }
 

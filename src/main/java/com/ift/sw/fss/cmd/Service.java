@@ -4,7 +4,6 @@ import com.ift.sw.fss.FSSAgent;
 import com.ift.sw.fss.FSSCommander;
 import com.ift.sw.fss.FSSException;
 import com.ift.sw.fss.FSSTag;
-import com.ift.sw.fss.cmd.FSSCmd;
 import org.json.JSONObject;
 
 @FSSTag(key = "service")
@@ -14,7 +13,7 @@ public class Service extends FSSCmd {
     }
 
     @Override
-    protected void beforeExecute() throws FSSException {
+    public void beforeExecute() throws FSSException {
         switch (cmdArr[1]) {
             case "options":
                 this.setCmd(FSSCommander.formatDoubleQuote(cmd));

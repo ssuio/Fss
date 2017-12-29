@@ -13,7 +13,7 @@ public class LDAPServer extends FSSCmd {
     }
 
     @Override
-    protected void beforeExecute() throws FSSException {
+    public void beforeExecute() throws FSSException {
         if ("host".equalsIgnoreCase(cmdArr[1])) {
             switch (cmdArr[2]) {
                 case "export":

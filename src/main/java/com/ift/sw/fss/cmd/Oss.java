@@ -13,7 +13,7 @@ public class Oss extends FSSCmd {
     }
 
     @Override
-    protected void beforeExecute() throws FSSException {
+    public void beforeExecute() throws FSSException {
         switch (cmdArr[1]) {
             case "keygen":
             case "keydel":

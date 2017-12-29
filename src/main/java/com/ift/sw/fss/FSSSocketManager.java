@@ -36,10 +36,6 @@ public class FSSSocketManager implements Runnable {
         }
     }
 
-    public static FSSSocketManager getSocketMgr() {
-        return socketMgr;
-    }
-
     public static SelectionKey register(Object info) throws IOException, FSSException {
         SelectionKey key = null;
         try {
@@ -99,35 +95,36 @@ public class FSSSocketManager implements Runnable {
         }
     }
 
-    public static String execute(Object serviceId, short type, String cmd) throws IOException, InterruptedException, FSSException {
+    public static String execute(Object serviceId, short type, String cmd) throws FSSException {
         SelectionKey key = getKey(serviceId, type);
         FSSChannelInfo info = (FSSChannelInfo) key.attachment();
-        synchronized (info) {
+        Tool.printErrorMsg(info.toString());
             SocketChannel channel = (SocketChannel) key.channel();
             if (channel != null && channel.isConnected()) {
                 try {
                     info.lock();
+//                    Tool.printErrorMsg(" write");
                     channel.write(ByteBuffer.wrap(FSSCommander.generateFssPacket(cmd)));
                     do {
                         if (!info.await(type == FSSChannelInfo.GET ? GET_TIMEOUT : SET_TIMEOUT)) {
                             throw new FSSException("Cmd timeout", FSSException.CMD_TIMEOUT);
                         }
                     } while (!handleReadableData(key));
+//                    Tool.printErrorMsg(" read end.");
                 } catch (FSSException e) {
                     throw e;
                 } catch (IOException e) { //Maybe is remote side force disconnect.
                     if (info.getType() == FSSChannelInfo.GET || info.getType() == FSSChannelInfo.SET) {
                         throw new FSSException(FSSException.REMOTE_FORCE_DISCONNECT, info);
                     }
-                } catch (Exception e) {
-                    Tool.printErrorMsg(info.toString() + " " + cmd + " handleReadableData failed.", e);
+                } catch (InterruptedException e) {
+                    throw new FSSException("handleReadData failed." + e.toString());
                 } finally {
                     info.signalAll();
                     info.unlock();
                 }
                 return info.getOutPutStr();
             }
-        }
         throw new FSSException(info.toString() + " execute channel problem.");
     }
 
@@ -155,7 +152,7 @@ public class FSSSocketManager implements Runnable {
         return info.getOutPutStr();
     }
 
-    public static SelectionKey getKey(Object serviceId, short type) throws FSSException {
+    private static SelectionKey getKey(Object serviceId, short type) throws FSSException {
         Iterator<SelectionKey> it = selector.keys().iterator();
         while (it.hasNext()) {
             SelectionKey key = it.next();
@@ -184,8 +181,8 @@ public class FSSSocketManager implements Runnable {
                             FSSChannelInfo info = (FSSChannelInfo) key.attachment();
                             try {
                                 info.lock();
-                                info.signalAll();
                             } finally {
+                                info.signalAll();
                                 info.unlock();
                             }
                         }
@@ -235,19 +232,24 @@ public class FSSSocketManager implements Runnable {
         ByteBuffer readBuff = info.getBuffer();
         SocketChannel channel = (SocketChannel) key.channel();
         readBuff.clear();
-        byte[] tmpBuff = new byte[channel.read(readBuff)]; //Might happen remote force disconnect problem
+        int length = channel.read(readBuff);
+        Tool.printErrorMsg("length:"+length);
+        if(length == 0) return false;
+        byte[] tmpBuff = new byte[length]; //Might happen remote force disconnect problem
         readBuff.flip();
         readBuff.get(tmpBuff, 0, tmpBuff.length);
+        Tool.printErrorMsg(Tool.getHexBytesString(tmpBuff));
         if (tmpBuff.length == 16 && !isSSL && tmpBuff[0] == (byte) 0xAF && tmpBuff[1] == (byte) 0xFA) {
             info.reset();
+            Tool.printErrorMsg("info reset");
             info.setDataLength(Tool.getInt(tmpBuff, 8, 4));
+            Tool.printErrorMsg("info setDatalength" + Tool.getInt(tmpBuff, 8, 4));
         } else {
             int dataTotalLength = info.getDataLength();
             byte[] preData = info.getResult();
             byte[] result;
             if (preData.length == 0) {
                 result = tmpBuff;
-                System.arraycopy(tmpBuff, 0, result, 0, tmpBuff.length);
             } else {
                 result = new byte[preData.length + tmpBuff.length];
                 System.arraycopy(preData, 0, result, 0, preData.length);
@@ -255,7 +257,12 @@ public class FSSSocketManager implements Runnable {
             }
             info.setResult(result);
             if (dataTotalLength - FSSCommander.BASESIZE <= result.length) {
+                Tool.printErrorMsg("Finish dataTotalLength:"+ dataTotalLength + " resultLength:" + result.length);
+                readBuff.clear();
+                Tool.printErrorMsg(info.getOutPutStr());
                 return true;
+            }else{
+                Tool.printErrorMsg("Joining dataTotalLength:"+ dataTotalLength + " resultLength:" + result.length);
             }
         }
         return false;

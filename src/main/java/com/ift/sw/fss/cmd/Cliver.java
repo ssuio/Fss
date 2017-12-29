@@ -28,7 +28,7 @@ public class Cliver extends FSSCmd {
             JSONArray tempArr = new JSONArray();
             tempArr.put(dataMap);
             obj.put("data", tempArr);
-        } else if (fss.getCliver() == null) {
+        } else if (fss != null && fss.getCliver() == null) {
             fss.setCliver(obj.getJSONArray("data").getJSONObject(0).optString("version"));
         }
         return obj;

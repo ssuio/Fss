@@ -41,7 +41,7 @@ public class FSSChannelInfo extends ReentrantLock {
     }
 
     public String getOutPutStr() throws FSSException {
-        return FSSCommander.formatOutPutStr(new String(result));
+        return FSSCommander.formatOutPutStr(new String(this.result));
     }
 
     public void setResult(byte[] result) {

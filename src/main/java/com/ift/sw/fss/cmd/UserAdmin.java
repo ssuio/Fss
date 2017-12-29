@@ -13,7 +13,7 @@ public class UserAdmin extends FSSCmd {
     }
 
     @Override
-    protected void beforeExecute() throws FSSException {
+    public void beforeExecute() throws FSSException {
         switch (cmdArr[2]) {
             case "add":
             case "modify":

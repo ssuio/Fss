@@ -14,7 +14,7 @@ public class Pagelist extends FSSCmd {
     }
 
     @Override
-    protected void beforeExecute() throws FSSException {
+    public void beforeExecute() throws FSSException {
         switch (cmdArr[1]) {
             case "user":
                 if (cmdArr[2].equalsIgnoreCase("slotA") || cmdArr[2].equalsIgnoreCase("slotB")) {

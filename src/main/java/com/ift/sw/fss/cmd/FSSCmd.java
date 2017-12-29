@@ -73,7 +73,7 @@ public abstract class FSSCmd {
         return cmdType;
     }
 
-    protected void beforeExecute() throws FSSException {
+    public void beforeExecute() throws FSSException {
     }
 
     public final JSONObject execute() throws FSSException {
