@@ -29,9 +29,9 @@ public class Acl extends FSSCmd {
     public String getAssigmentVal() throws Exception {
         switch (cmdArr[1]) {
             case "set":
+            case "get":
                 this.setCmd(cmd.replace("\\\"", "\\\\\""));
             case "delete":
-            case "get":
                 return FSSCommander.formatPathAssignment(cmdArr[2]);
         }
         return FSSCommander.BOTH_SLOT;
