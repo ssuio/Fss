@@ -47,7 +47,9 @@ public class FSSAgent {
                     FSSSocketManager.execute(serviceId, cmdType, finalCmd);
         } catch (FSSException e) {
             if (e.getErrorCode() == FSSException.REMOTE_FORCE_DISCONNECT) {
-                retryer.addRetryInfo(e.getInfo());
+                if(e.getInfo().getType() == FSSChannelInfo.GET || e.getInfo().getType() == FSSChannelInfo.SET ){
+                    retryer.addRetryInfo(e.getInfo());
+                }
             }
             throw e;
         } catch (Exception e) {
@@ -78,7 +80,7 @@ public class FSSAgent {
     }
 
     public boolean isAlive() {
-        return !retryer.isRetrying();
+        return !retryer.isRetrying() && retryer.isRetry();
     }
 
     public String getCliver() {
@@ -87,5 +89,13 @@ public class FSSAgent {
 
     public void setCliver(String cliver) {
         this.cliver = cliver;
+    }
+
+    public String getServiceId() {
+        return serviceId;
+    }
+
+    public void setServiceId(String serviceId) {
+        this.serviceId = serviceId;
     }
 }

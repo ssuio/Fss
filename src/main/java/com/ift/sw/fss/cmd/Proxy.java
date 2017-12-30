@@ -15,10 +15,12 @@ public class Proxy extends FSSCmd {
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
+        String oriResp;
         this.setShowList(true);
         switch (cmdArr[1]) {
             case "switch":
+                oriResp = executeFSSCmd(cmd, cmdArr[2]);
                 return FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
             case "diskcache":
             case "memcache":
@@ -26,21 +28,16 @@ public class Proxy extends FSSCmd {
             case "acledit":
             case "acldel":
             case "aclmov":
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalSetOneCmdParser(oriResp, BOTH_SLOT);
             case "config":
+                oriResp = executeFSSCmd(cmd);
                 return proxyConfigGetCmdParser(oriResp, BOTH_SLOT);
             case "status":
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.getCmdParserByInsertingControllerId(oriResp);
         }
         throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
-    }
-
-    @Override
-    public String getAssigmentVal() throws Exception {
-        if ("switch".equalsIgnoreCase(cmdArr[1])) {
-            return cmdArr[2];
-        }
-        return FSSCommander.BOTH_SLOT;
     }
 
     private static JSONObject proxyConfigGetCmdParser(String cmdResp, boolean isBothSlot) throws JSONException {

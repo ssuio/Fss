@@ -13,16 +13,20 @@ public class Pwrsche extends FSSCmd {
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
+        String oriResp;
         this.setShowList(true);
         switch (cmdArr[1]) {
             case "list":
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalGetCmdParser(oriResp, "id");
             case "add":
             case "edit":
             case "del":
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalSetCmdParser(oriResp, BOTH_SLOT);
         }
         throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
     }
+
 }

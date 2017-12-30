@@ -13,16 +13,13 @@ public class ScheduleRR extends FSSCmd {
     }
 
     @Override
-    public void beforeExecute() throws FSSException {
-        this.setCmd(FSSCommander.formatDoubleQuote(cmd));
-    }
-
-    @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
+        cmd = FSSCommander.formatDoubleQuote(cmd);
         if ("create".equalsIgnoreCase(cmdArr[1])) {
-            this.setOptions(OP_SHOW_LIST);
-            return FSSCommander.generalSetCmdParser(oriResp, BOTH_SLOT);
+            setShowList(true);
+            return FSSCommander.generalSetCmdParser(executeFSSCmd(cmd), BOTH_SLOT);
         }
         throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
     }
+
 }

@@ -13,15 +13,19 @@ public class Replicate extends FSSCmd {
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
-        this.setOptions(OP_SHOW_LIST);
+    protected JSONObject execSetup() throws FSSException {
+        String oriResp;
+        setShowList(true);
         switch (cmdArr[1]) {
             case "create":
             case "delete":
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalSetCmdParser(oriResp, BOTH_SLOT);
             case "status":
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalGetCmdParser(oriResp, "name");
         }
         throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
     }
+
 }

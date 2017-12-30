@@ -13,7 +13,8 @@ public class NetNumber extends FSSCmd {
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
-        return FSSCommander.netNumberGetCmdParser(oriResp, "total");
+    protected JSONObject execSetup() throws FSSException {
+        return FSSCommander.netNumberGetCmdParser(executeFSSCmd(cmd), "total");
     }
+
 }

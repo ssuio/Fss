@@ -14,13 +14,16 @@ public class Explorer extends FSSCmd{
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
+        String oriResp;
         if( "app".equalsIgnoreCase(cmdArr[1])) {
             switch (cmdArr[2]) {
                 case "start":
                 case "stop":
+                    oriResp = executeFSSCmd(cmd);
                     return FSSCommander.generalSetCmdParser(oriResp, BOTH_SLOT);
                 case "status":
+                    oriResp = executeFSSCmd(cmd);
                     return FSSCommander.serviceStatusGetCmdParser(oriResp);
             }
         }

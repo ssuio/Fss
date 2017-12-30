@@ -46,7 +46,7 @@ public class FSSSocketManager implements Runnable {
             key = channel.register(selector, OP_READ, info);
             Tool.printDebugMsg(info.toString() + " register succ.");
         } catch (IOException e) {
-            throw new FSSException("Ext channel register failed.");
+            throw new FSSException(info.toString()+" channel register failed.");
         } finally {
             registerLock.unlock();
         }
@@ -103,7 +103,8 @@ public class FSSSocketManager implements Runnable {
             if (channel != null && channel.isConnected()) {
                 try {
                     info.lock();
-//                    Tool.printErrorMsg(" write");
+                    info.reset();
+                    Tool.printErrorMsg(" reset");
                     channel.write(ByteBuffer.wrap(FSSCommander.generateFssPacket(cmd)));
                     do {
                         if (!info.await(type == FSSChannelInfo.GET ? GET_TIMEOUT : SET_TIMEOUT)) {
@@ -133,6 +134,7 @@ public class FSSSocketManager implements Runnable {
         SelectionKey key = register(info);
         try {
             info.lock();
+            info.reset();
             ((SocketChannel) key.channel()).write(ByteBuffer.wrap(FSSCommander.generateFssPacket(cmd)));
             do {
                 if (!info.await(EXT_TIMEOUT)) {
@@ -232,38 +234,36 @@ public class FSSSocketManager implements Runnable {
         ByteBuffer readBuff = info.getBuffer();
         SocketChannel channel = (SocketChannel) key.channel();
         readBuff.clear();
-        int length = channel.read(readBuff);
-        Tool.printErrorMsg("length:"+length);
-        if(length == 0) return false;
-        byte[] tmpBuff = new byte[length]; //Might happen remote force disconnect problem
+
+        byte[] tmpBuff = new byte[ channel.read(readBuff)]; //Might happen remote force disconnect problem
+        Tool.printErrorMsg("length:"+tmpBuff.length);
+        if(tmpBuff.length == 0) return false;
         readBuff.flip();
         readBuff.get(tmpBuff, 0, tmpBuff.length);
         Tool.printErrorMsg(Tool.getHexBytesString(tmpBuff));
-        if (tmpBuff.length == 16 && !isSSL && tmpBuff[0] == (byte) 0xAF && tmpBuff[1] == (byte) 0xFA) {
-            info.reset();
-            Tool.printErrorMsg("info reset");
+        byte[] preData = info.getResult();
+        byte[] result;
+
+        if(preData.length <= 0 && (!isSSL && tmpBuff[0] == (byte) 0xAF && tmpBuff[1] == (byte) 0xFA)){
             info.setDataLength(Tool.getInt(tmpBuff, 8, 4));
             Tool.printErrorMsg("info setDatalength" + Tool.getInt(tmpBuff, 8, 4));
-        } else {
-            int dataTotalLength = info.getDataLength();
-            byte[] preData = info.getResult();
-            byte[] result;
-            if (preData.length == 0) {
-                result = tmpBuff;
-            } else {
-                result = new byte[preData.length + tmpBuff.length];
-                System.arraycopy(preData, 0, result, 0, preData.length);
-                System.arraycopy(tmpBuff, 0, result, preData.length, tmpBuff.length);
-            }
-            info.setResult(result);
-            if (dataTotalLength - FSSCommander.BASESIZE <= result.length) {
-                Tool.printErrorMsg("Finish dataTotalLength:"+ dataTotalLength + " resultLength:" + result.length);
-                readBuff.clear();
-                Tool.printErrorMsg(info.getOutPutStr());
-                return true;
-            }else{
-                Tool.printErrorMsg("Joining dataTotalLength:"+ dataTotalLength + " resultLength:" + result.length);
-            }
+            result = tmpBuff;
+        }else if(preData.length > 0){
+            result = new byte[preData.length + tmpBuff.length];
+            System.arraycopy(preData, 0, result, 0, preData.length);
+            System.arraycopy(tmpBuff, 0, result, preData.length, tmpBuff.length);
+        }else{
+            throw new FSSException("handleReadData transport flow not correct.");
+        }
+        info.setResult(result);
+        int dataTotalLength = info.getDataLength();
+        if (dataTotalLength <= result.length) {
+            Tool.printErrorMsg("Finish dataTotalLength:"+ dataTotalLength + " resultLength:" + result.length);
+            readBuff.clear();
+            Tool.printErrorMsg(info.getOutPutStr());
+            return true;
+        }else{
+            Tool.printErrorMsg("Joining dataTotalLength:"+ dataTotalLength + " resultLength:" + result.length);
         }
         return false;
     }

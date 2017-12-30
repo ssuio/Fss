@@ -17,7 +17,8 @@ public class Mgmtver extends FSSCmd{
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
+        String oriResp = executeFSSCmd(cmd);
         JSONObject obj =  FSSCommander.generalGetCmdParser(oriResp);
         int len = obj.optJSONArray("data").length();
         if(len == 0){
@@ -49,4 +50,5 @@ public class Mgmtver extends FSSCmd{
         }
         return obj;
     }
+
 }

@@ -13,13 +13,9 @@ public class Passwd extends FSSCmd {
     }
 
     @Override
-    public void beforeExecute() throws FSSException {
-        this.setCmd(FSSCommander.formatDoubleQuote(cmd));
+    protected JSONObject execSetup() throws FSSException {
+        cmd = FSSCommander.formatDoubleQuote(cmd);
+        return FSSCommander.generalSetCmdParser(executeFSSCmd(cmd), BOTH_SLOT);
     }
 
-    @Override
-    public JSONObject parse(String oriResp) throws Exception {
-        this.setShowList(true);
-        return FSSCommander.generalSetCmdParser(oriResp, BOTH_SLOT);
-    }
 }

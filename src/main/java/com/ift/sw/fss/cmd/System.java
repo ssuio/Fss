@@ -13,11 +13,12 @@ public class System extends FSSCmd {
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
         switch (cmdArr[1]) {
             case "iostat":
-                return FSSCommander.generalGetCmdParser(oriResp, "name");
+                return FSSCommander.generalGetCmdParser(executeFSSCmd(cmd), "name");
         }
         throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
     }
+
 }

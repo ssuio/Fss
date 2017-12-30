@@ -18,7 +18,8 @@ public class Cliver extends FSSCmd {
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    public JSONObject execSetup() throws FSSException {
+        String oriResp = executeFSSCmd(cmd);
         JSONObject obj = FSSCommander.generalGetCmdParser(oriResp);
         int len = obj.optJSONArray("data").length();
         if (len == 0) {

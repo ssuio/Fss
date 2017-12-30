@@ -13,27 +13,21 @@ public class Share extends FSSCmd {
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
+        String oriResp;
         this.setShowList(true);
         switch (cmdArr[1]) {
             case "status":
                 this.setOutPutType(DYNAMIC_KEY_OUTPUT);
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalGetCmdParser(oriResp, "directory");
             case "options":
+                oriResp = executeFSSCmd(cmd, cmdArr[2]);
+                return FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
             default:
+                oriResp = executeFSSCmd(cmd, cmdArr[1]);
                 return FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
         }
     }
 
-    @Override
-    public String getAssigmentVal() throws Exception {
-        switch (cmdArr[1]) {
-            case "status":
-                return FSSCommander.BOTH_SLOT;
-            case "options":
-                return FSSCommander.formatPathAssignment(cmdArr[2]);
-            default:
-                return FSSCommander.formatPathAssignment(cmdArr[1]);
-        }
-    }
 }

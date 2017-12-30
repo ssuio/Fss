@@ -13,40 +13,39 @@ public class UserAdmin extends FSSCmd {
     }
 
     @Override
-    public void beforeExecute() throws FSSException {
-        switch (cmdArr[2]) {
-            case "add":
-            case "modify":
-                this.setCmd(FSSCommander.formatDoubleQuote(cmd));
-        }
-    }
-
-    @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
+        String oriResp;
         if ("user".equalsIgnoreCase(cmdArr[1])) {
             switch (cmdArr[2]) {
                 case "add":
+                    cmd = FSSCommander.formatDoubleQuote(cmd);
                 case "delete":
                 case "modify":
                     this.setShowList(true);
+                    oriResp = executeFSSCmd(cmd);
                     return FSSCommander.generalSetCmdParser(oriResp, BOTH_SLOT);
                 case "list":
+                    oriResp = executeFSSCmd(cmd);
                     return FSSCommander.generalGetCmdParser(oriResp, "UID");
             }
         } else if ("group".equalsIgnoreCase(cmdArr[1])) {
             switch (cmdArr[2]) {
                 case "add":
+                    cmd = FSSCommander.formatDoubleQuote(cmd);
                 case "delete":
                     this.setShowList(true);
                 case "rename":
                 case "modify":
                 case "adduser":
                 case "deluser":
+                    oriResp = executeFSSCmd(cmd);
                     return FSSCommander.generalSetCmdParser(oriResp, BOTH_SLOT);
                 case "list":
+                    oriResp = executeFSSCmd(cmd);
                     return FSSCommander.generalGetCmdParser(oriResp, "Name");
             }
         }
         throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
     }
+
 }

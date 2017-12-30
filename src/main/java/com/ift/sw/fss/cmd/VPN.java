@@ -19,35 +19,26 @@ public class VPN extends FSSCmd {
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
+        String oriResp = "";
         switch (this.cmdArr[1]) {
             case "status":
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.getCmdParserByInsertingControllerId(oriResp);
             case "view":
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalGetCmdParser(oriResp);
             case "config":
                 if (this.cmdArr.length <= 4)
+                    oriResp = executeFSSCmd(cmd);
                     return getCmdParserByInsertingControllerId(oriResp);
             case "cut":
             case "act":
             case "mschap":
+                oriResp = executeFSSCmd(cmd, cmdArr[2]);
                 return FSSCommander.generalSetCmdParser(oriResp, FSSCmd.SINGLE_SLOT);
             default:
                 throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
-        }
-    }
-
-    @Override
-    public String getAssigmentVal() throws Exception {
-        switch (cmdArr[1]) {
-            case "config":
-                return cmdArr.length > 4 ? cmdArr[2] : FSSCommander.BOTH_SLOT;
-            case "act":
-                return cmdArr[2];
-            case "cut":
-                return cmdArr[2];
-            default:
-                return FSSCommander.BOTH_SLOT;
         }
     }
 

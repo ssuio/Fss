@@ -13,8 +13,9 @@ public class Refreshdu extends FSSCmd {
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
         this.setShowList(true);
-        return FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
+        return FSSCommander.generalSetCmdParser(executeFSSCmd(cmd), BOTH_SLOT);
     }
+
 }

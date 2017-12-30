@@ -3,10 +3,7 @@ package com.ift.sw.fss.cmd;
 import com.ift.sw.fss.FSSAgent;
 import com.ift.sw.fss.FSSCommander;
 import com.ift.sw.fss.FSSException;
-import com.ift.sw.fss.Tool;
 import org.json.JSONObject;
-
-import java.text.MessageFormat;
 
 public abstract class FSSCmd {
     public static final short SET = 0;
@@ -28,18 +25,11 @@ public abstract class FSSCmd {
     protected String cmd;
     protected String[] cmdArr;
     protected String slot = FSSCommander.BOTH_SLOT;
-    protected String assignVal;
 
     public FSSCmd(FSSAgent fss, String cmd) throws FSSException {
         this.fss = fss;
         this.cmd = cmd;
         this.cmdArr = FSSCommander.cmdSplit(cmd);
-        try {
-            this.assignVal = getAssigmentVal();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new FSSException("Get assignmentVal failed. "+ this.toString() + e.toString());
-        }
     }
 
     public String getCmd() {
@@ -49,10 +39,6 @@ public abstract class FSSCmd {
     public void setCmd(String cmd) {
         this.cmd = cmd;
         this.cmdArr = FSSCommander.cmdSplit(cmd);
-    }
-
-    public void setCmdOnly(String cmd) {
-        this.cmd = cmd;
     }
 
     public String getSlot() {
@@ -73,40 +59,40 @@ public abstract class FSSCmd {
         return cmdType;
     }
 
-    public void beforeExecute() throws FSSException {
-    }
+    protected abstract JSONObject execSetup()throws FSSException;
 
-    public final JSONObject execute() throws FSSException {
-        beforeExecute();
-        if (assignVal.equals("slotA")) {
-            setCmdOnly(cmd.replace("slotA", ""));
-        } else if (assignVal.equals("slotB")) {
-            setCmdOnly(cmd.replace("slotB", ""));
+    public JSONObject execute() throws FSSException{
+        try{
+            JSONObject obj = execSetup();
+            return isHandleBgJob() ? this.handleBgJob(obj) : obj;
+        }catch (Exception e){
+            if(e instanceof FSSException){
+                throw e;
+            }else{
+                throw new FSSException(this.toString() + " unhandle exception when execute fsscmd. "+e.toString());
+            }
         }
-        String oriResp = fss.execute(this);
-        Tool.printDebugMsg(MessageFormat.format("{0} res: {1}", this.toString(), oriResp));
-        JSONObject obj = null;
-        try {
-            obj = parse(oriResp);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new FSSException(MessageFormat.format("Parse oriResp failed. {0} res: {1}", this.toString(), oriResp));
+    }
+
+    protected String executeFSSCmdUseVVId(String cmd, String assignVal) throws FSSException {
+        this.slot = this.fss.traveler.getFSSCmdAssignment(assignVal, cmd, true);
+        return executeFSSCmd(FSSCommander.formatAssignCmd(cmd, assignVal));
+    }
+
+    protected String executeFSSCmd(String cmd, String assignVal) throws FSSException {
+        this.slot = this.fss.traveler.getFSSCmdAssignment(assignVal, cmd, false);
+        return executeFSSCmd(FSSCommander.formatAssignCmd(cmd, assignVal));
+    }
+
+    protected String executeFSSCmd(String cmd) throws FSSException {
+        this.setCmd(cmd);
+        if(this.fss != null && this.fss.isAlive()){
+            return fss.execute(this);
+        }else{
+            String finalCmd;
+            finalCmd = FSSCommander.formatFSSCmd(cmd, this.getSlot(), fss.getServiceId());
+            return fss.traveler.executeWhenFSSNotAlive(finalCmd, this.getCmdType());
         }
-        return isHandleBgJob() ? this.handleBgJob(obj) : obj;
-    }
-
-    public abstract JSONObject parse(String oriResp) throws Exception;
-
-    public String getAssigmentVal() throws Exception {
-        return FSSCommander.BOTH_SLOT;
-    }
-
-    public String getAssignVal() throws FSSException {
-        return assignVal;
-    }
-
-    public int setOptions(int ops){
-        return this.ops |= ops;
     }
 
     protected JSONObject handleBgJob(JSONObject msgObj) throws FSSException {
@@ -120,7 +106,7 @@ public abstract class FSSCmd {
             String bgjobCommand = "bgjob status -i " + jobId;
             while (true) {
                 String oriResp;
-                oriResp = fss.execute(bgjobCommand, cmdType, FSSCommander.BOTH_SLOT);
+                oriResp = executeFSSCmd(bgjobCommand);
                 obj = FSSCommander.generalGetCmdParser(oriResp);
                 dataObj = obj.getJSONArray("data").getJSONObject(0);
                 if (dataObj.getInt("percentage") == 100) {
@@ -133,14 +119,6 @@ public abstract class FSSCmd {
             }
         }
         return msgObj;
-    }
-
-    public boolean isUseVVId() {
-        return (ops & OP_USE_VVID) != 0;
-    }
-
-    public void setUseVVId(boolean useVVId) {
-        this.ops = useVVId ? this.ops|OP_USE_VVID : this.ops^OP_USE_VVID;
     }
 
     public boolean isShowList() {
@@ -168,6 +146,14 @@ public abstract class FSSCmd {
         this.outPutType = outPutType;
     }
 
+    public FSSAgent getFss() {
+        return fss;
+    }
+
+    public void setFss(FSSAgent fss) {
+        this.fss = fss;
+    }
+
     @Override
     public String toString() {
         return "FSSCmd{" +
@@ -175,7 +161,6 @@ public abstract class FSSCmd {
                 ", cmdType=" + cmdType +
                 ", cmd='" + cmd + '\'' +
                 ", slot='" + slot + '\'' +
-                ", useVVId=" + isUseVVId() +
                 ", showList=" + isShowList() +
                 ", handleBgJob=" + isHandleBgJob() +
                 ", outPutType=" + outPutType +

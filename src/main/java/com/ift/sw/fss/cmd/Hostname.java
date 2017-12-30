@@ -13,21 +13,17 @@ public class Hostname extends FSSCmd{
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
+        String oriResp;
         this.setOutPutType(CHKHOST_OUTPUT);
-        this.setOptions(OP_SHOW_LIST);
+        this.setShowList(true);
         if(cmdArr.length > 1){
+            oriResp = executeFSSCmd(cmd, cmdArr[1]);
             return FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
         }else{
+            oriResp = executeFSSCmd(cmd);
             return FSSCommander.getCmdParserByInsertingControllerId(oriResp);
         }
     }
 
-    @Override
-    public String getAssigmentVal() throws Exception {
-        if(cmdArr.length > 1){
-            return cmdArr[1];
-        }
-        return FSSCommander.BOTH_SLOT;
-    }
 }

@@ -13,10 +13,10 @@ public class Hostchk extends FSSCmd{
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
         switch (cmdArr[1]){
             case "name":
-                return FSSCommander.generalSetCmdParser(oriResp, BOTH_SLOT);
+                return FSSCommander.generalSetCmdParser(executeFSSCmd(cmd), BOTH_SLOT);
         }
         throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
     }

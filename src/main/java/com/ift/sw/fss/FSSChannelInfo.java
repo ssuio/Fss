@@ -1,6 +1,7 @@
 package com.ift.sw.fss;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -15,7 +16,7 @@ public class FSSChannelInfo extends ReentrantLock {
     private short type;
     private ByteBuffer buffer = ByteBuffer.allocate(6144);
     private byte[] result;
-    private int dataLength;
+    private int dataLength = 0;
     private Condition con = this.newCondition();
 
     public FSSChannelInfo(Object serviceId, String ip, short type) {
@@ -41,7 +42,7 @@ public class FSSChannelInfo extends ReentrantLock {
     }
 
     public String getOutPutStr() throws FSSException {
-        return FSSCommander.formatOutPutStr(new String(this.result));
+        return FSSCommander.formatOutPutStr(new String(Arrays.copyOfRange(this.result, 16, this.result.length)));
     }
 
     public void setResult(byte[] result) {

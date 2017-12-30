@@ -13,22 +13,30 @@ public class Synccloud extends FSSCmd {
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
+        String oriResp;
         if (cmdArr.length >= 2) {
             switch (cmdArr[1]) {
                 case "start":
                 case "stop":
+                    oriResp = executeFSSCmd(cmd);
                     return FSSCommander.generalSetCmdParser(oriResp, FSSCmd.BOTH_SLOT);
                 case "status":
+                    oriResp = executeFSSCmd(cmd);
                     return FSSCommander.generalGetCmdParser(oriResp, "cloudDatabase", "cloudStatus");
                 case "tasklist":
+                    oriResp = executeFSSCmd(cmd);
                     return FSSCommander.generalGetCmdParser(oriResp, "uniqueID");
                 case "usr":
-                    if (cmdArr.length == 4 && cmdArr[2].equalsIgnoreCase("-u"))
+                    if (cmdArr.length == 4 && cmdArr[2].equalsIgnoreCase("-u")){
+                        oriResp = executeFSSCmd(cmd);
                         return FSSCommander.generalSetCmdParser(oriResp, FSSCmd.BOTH_SLOT);
-                    else if (cmdArr.length == 2)
+                    }
+                    else if (cmdArr.length == 2){
+                        oriResp = executeFSSCmd(cmd);
                         return FSSCommander.generalGetCmdParser(oriResp, "user", "uid");
-                    else
+                    }
+                default:
                         new FSSException("Failed to execute command");
             }
         }

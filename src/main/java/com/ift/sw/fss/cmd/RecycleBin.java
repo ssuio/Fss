@@ -13,30 +13,22 @@ public class RecycleBin extends FSSCmd {
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
+        String oriResp;
         this.setShowList(true);
         switch (cmdArr[1]) {
             case "config":
             case "clear":
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalSetCmdParser(oriResp, BOTH_SLOT);
             case "enable":
             case "disable":
             case "priv_set":
             case "recover":
+                oriResp = executeFSSCmd(cmd, cmdArr[cmdArr.length - 1]);
                 return FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
         }
         throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
     }
 
-    @Override
-    public String getAssigmentVal() throws Exception {
-        switch (cmdArr[1]) {
-            case "enable":
-            case "disable":
-            case "priv_set":
-            case "recover":
-                return cmdArr[cmdArr.length - 1];
-        }
-        return FSSCommander.BOTH_SLOT;
-    }
 }

@@ -19,7 +19,8 @@ public class ServicesSwitch extends FSSCmd{
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
-        return FSSCommander.generalGetCmdParser(oriResp, keys);
+    protected JSONObject execSetup() throws FSSException {
+        return FSSCommander.generalGetCmdParser(executeFSSCmd(cmd), keys);
     }
+
 }

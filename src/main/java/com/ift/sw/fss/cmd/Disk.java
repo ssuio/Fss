@@ -14,37 +14,32 @@ public class Disk extends FSSCmd {
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
+        String oriResp;
         switch (cmdArr[1]) {
             case "show":
                 if (cmdArr.length != 2 && !cmdArr[2].equalsIgnoreCase("-f")) {
                     setShowList(true);
                 }
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalGetCmdParser(oriResp, "diskID");
-            case "scan":
-                return FSSCommander.generalSetOneCmdParser(oriResp, BOTH_SLOT);
-            case "expand":
-                return FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
-        }
-        throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
-    }
 
-    @Override
-    public String getAssigmentVal() throws Exception {
-        switch (cmdArr[1]) {
+            case "scan":
+                oriResp = executeFSSCmd(cmd);
+                return FSSCommander.generalSetOneCmdParser(oriResp, BOTH_SLOT);
+
             case "expand":
-                // get vvid
                 String diskShowCmd = "disk show " + cmdArr[2];
                 String Resp = null;
-                Resp = fss.execute(diskShowCmd, FSSCommander.BOTH_SLOT);
-                JSONObject obj = FSSCommander.generalGetCmdParser(Resp, "diskID");
-                JSONArray diskList = obj.getJSONArray("data");
-                obj = diskList.getJSONObject(0); // get first object
-                setOptions(FSSCmd.OP_USE_VVID);
-                return obj.getString("serial");
-            case "scan":
-                setOptions(OP_USE_VVID);
+                Resp = executeFSSCmd(diskShowCmd, FSSCommander.BOTH_SLOT);
+                JSONObject tmpObj = FSSCommander.generalGetCmdParser(Resp, "diskID");
+                JSONArray diskList = tmpObj.getJSONArray("data");
+                tmpObj = diskList.getJSONObject(0); // get first object
+                oriResp = executeFSSCmdUseVVId(cmd, tmpObj.getString("serial"));
+                return FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
+            default:
+                throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
         }
-        return FSSCommander.BOTH_SLOT;
     }
+
 }

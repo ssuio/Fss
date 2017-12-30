@@ -13,30 +13,21 @@ public class Pool extends FSSCmd {
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
+        String oriResp;
         this.setShowList(true);
         switch (cmdArr[1]) {
             case "create":
             case "destroy":
             case "export":
             case "import":
+                oriResp = executeFSSCmdUseVVId(cmd, cmdArr[2]);
                 return FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
             case "status":
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalGetCmdParser(oriResp, "name");
         }
         throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
     }
 
-    @Override
-    public String getAssigmentVal() throws Exception {
-        switch (cmdArr[1]) {
-            case "create":
-            case "destroy":
-            case "export":
-            case "import":
-                this.setOptions(OP_USE_VVID);
-                return cmdArr[2];
-        }
-        return FSSCommander.BOTH_SLOT;
-    }
 }

@@ -15,105 +15,101 @@ public class Antivirus extends FSSCmd {
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
+        String oriResp = "";
         switch (cmdArr[1].toLowerCase()) {
             case "schedule":
                 this.setShowList(true);
+                if (cmd.contains("-f")) {
+                    oriResp = executeFSSCmd(cmd,cmdArr[3]);
+                }else{
+                    oriResp = executeFSSCmd(cmd);
+                }
                 return FSSCommander.generalSetCmdParser(oriResp, cmd.contains("-f") ? SINGLE_SLOT : BOTH_SLOT);
+
             case "service":
                 this.setShowList(true);
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalSetCmdParser(oriResp, BOTH_SLOT);
+
             case "quarantine":
                 if (cmd.contains("-d") || cmd.contains("-r")) {
                     this.setShowList(true);
-                    return FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
+                    oriResp = executeFSSCmd(cmd,cmdArr[2]);
+                    return  FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
                 } else {
+                    oriResp = executeFSSCmd(cmd);
                     return FSSCommander.getCmdParserByInsertingControllerId(oriResp);
                 }
+
             case "info":
             case "status":
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.getCmdParserByInsertingControllerId(oriResp);
+
             case "update":
                 if (cmdArr.length == 2) {
-                    return FSSCommander.getCmdParserByInsertingControllerId(oriResp);
+                    oriResp = executeFSSCmd(cmd);
+                    return  FSSCommander.getCmdParserByInsertingControllerId(oriResp);
                 } else {
                     this.setShowList(true);
+                    oriResp = executeFSSCmd(cmd, cmdArr[2]);
                     return FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
                 }
+
             case "scanstart":
             case "scanstop":
                 this.setShowList(true);
                 if (cmd.contains("-f")) {
+                    oriResp = executeFSSCmd(cmd, cmdArr[Arrays.asList(cmdArr).indexOf("-f") + 1]);
                     return FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
                 } else {
+                    oriResp = executeFSSCmd(cmd);
                     return FSSCommander.generalSetCmdParser(oriResp, BOTH_SLOT);
                 }
+
             case "log":
                 if (cmdArr.length == 2 || (cmdArr.length > 4 && !"-d".equalsIgnoreCase(cmdArr[2]))) {
+                    oriResp = executeFSSCmd(cmd);
                     return FSSCommander.getCmdParserByInsertingControllerId(oriResp);
                 } else {
                     this.setShowList(true);
+                    oriResp = executeFSSCmd(cmd, FSSCommander.formatPathAssignment(cmdArr[Arrays.asList(cmdArr).indexOf("-f") + 1]));
                     return FSSCommander.generalSetCmdParser(oriResp, cmd.contains("-f") ? SINGLE_SLOT : BOTH_SLOT);
                 }
+
             case "options":
                 if (cmdArr.length <= 2) {
+                    oriResp = executeFSSCmd(cmd);
                     return FSSCommander.getCmdParserByInsertingControllerId(oriResp);
+                }else{
+                    oriResp = executeFSSCmd(cmd, cmdArr[Arrays.asList(cmdArr).indexOf("-f") + 1]);
+                    return FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
                 }
+
             case "pua":
                 if (cmdArr.length <= 2) {
+                    oriResp = executeFSSCmd(cmd);
                     return FSSCommander.generalGetCmdParser(oriResp, "status");
                 }
             case "filetype":
                 if (cmdArr.length <= 2) {
+                    oriResp = executeFSSCmd(cmd);
                     return FSSCommander.generalGetCmdParser(oriResp, "isEnabled");
                 }
             case "whitelist":
                 if (cmdArr.length <= 2) {
+                    oriResp = executeFSSCmd(cmd);
+                    oriResp = executeFSSCmd(cmd);
                     return FSSCommander.generalGetCmdParser(oriResp, "status");
                 }
                 this.setShowList(true);
+                oriResp = executeFSSCmd(cmd, cmdArr[Arrays.asList(cmdArr).indexOf("-f") + 1]);
                 return FSSCommander.generalSetCmdParser(oriResp, cmd.contains("-f") ? SINGLE_SLOT : BOTH_SLOT);
+
             default:
                 throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
         }
     }
 
-    @Override
-    public String getAssigmentVal() throws Exception {
-        switch (cmdArr[1].toLowerCase()) {
-            case "schedule":
-                if (cmd.contains("-f")) {
-                    return cmdArr[3];
-                }
-                break;
-            case "quarantine":
-                if (cmd.contains("-d") || cmd.contains("-4")) {
-                    return cmdArr[2];
-                }
-                break;
-            case "update":
-                if (cmdArr.length != 2) {
-                    return cmdArr[2];
-                }
-                break;
-            case "scanstart":
-            case "scanstop":
-                return cmdArr[Arrays.asList(cmdArr).indexOf("-f") + 1];
-            case "log":
-                if (cmdArr.length == 2 || (cmdArr.length > 4 && !"-d".equalsIgnoreCase(cmdArr[2]))) {
-
-                } else {
-                    return FSSCommander.formatPathAssignment(cmdArr[Arrays.asList(cmdArr).indexOf("-f") + 1]);
-                }
-                break;
-            case "options":
-            case "pua":
-            case "filetype":
-            case "whitelist":
-                if (cmdArr.length > 2) {
-                    return cmdArr[Arrays.asList(cmdArr).indexOf("-f") + 1];
-                }
-        }
-        return FSSCommander.BOTH_SLOT;
-    }
 }

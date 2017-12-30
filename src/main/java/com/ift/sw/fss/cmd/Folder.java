@@ -17,19 +17,14 @@ public class Folder extends FSSCmd {
     }
 
     @Override
-    public void beforeExecute() throws FSSException {
+    protected JSONObject execSetup() throws FSSException {
+        String oriResp;
         switch (cmdArr[1]) {
             case "options":
                 if (cmd.contains("export=")) {
-                    this.setCmdOnly(cmd.replace(cmdArr[cmdArr.length - 1], ""));
+                    cmd = cmd.replace(cmdArr[cmdArr.length - 1], "");
                 }
-        }
-    }
-
-    @Override
-    public JSONObject parse(String oriResp) throws Exception {
-        switch (cmdArr[1]) {
-            case "options":
+                oriResp = executeFSSCmd(cmd, cmdArr[2]);
                 JSONObject obj = FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
                 if (oriResp.contains("exportkey")) {
                     JSONArray dataList = obj.getJSONArray("data");
@@ -44,37 +39,21 @@ public class Folder extends FSSCmd {
                 return obj;
             case "create":
                 this.setShowList(true);
+                oriResp = executeFSSCmd(cmd, cmdArr[2]);
                 return FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
             case "status":
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalGetCmdParser(oriResp, cmdArr.length > 2 ? "path" : "directory");
             case "usedsize":
                 if (cmdArr.length == 2) {
+                    oriResp = executeFSSCmd(cmd);
                     return FSSCommander.generalSetCmdParser(oriResp, BOTH_SLOT);
                 } else {
+                    oriResp = executeFSSCmd(cmd, cmdArr[3].split("/")[1]);
                     return FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
                 }
         }
         throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
-    }
-
-    @Override
-    public String getAssigmentVal() throws Exception {
-        switch (cmdArr[1]) {
-            case "options":
-                this.setOptions(OP_USE_VVID);
-                if (cmd.contains("export=")) {
-                    this.setCmd(cmd.replace(cmdArr[cmdArr.length - 1], ""));
-                }
-                return cmdArr[2];
-            case "create":
-                this.setOptions(OP_USE_VVID);
-                return cmdArr[2];
-            case "usedsize":
-                if (cmdArr.length != 2) {
-                    return cmdArr[3].split("/")[1];
-                }
-        }
-        return FSSCommander.BOTH_SLOT;
     }
 
     private void createEncryptionKeyFile(String path, String fileName, String encryptionKey) throws FSSException {

@@ -13,10 +13,14 @@ public class BWList extends FSSCmd {
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
+        String oriResp;
+
         switch (cmdArr[1]) {
             case "status":
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalGetCmdParser(oriResp, "list");
+
             case "add":
                 switch (cmdArr[2]) {
                     case "host":
@@ -24,20 +28,30 @@ public class BWList extends FSSCmd {
                     case "iprange":
                     case "country":
                         this.setShowList(true);
+                        oriResp = executeFSSCmd(cmd);
                         return FSSCommander.generalSetCmdParser(oriResp, BOTH_SLOT);
+                    default:
+                        throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
                 }
-                break;
+
             case "list":
                 this.setOutPutType(DYNAMIC_KEY_OUTPUT);
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalGetCmdParser(oriResp, "UID");
+
             case "delete":
                 this.setShowList(true);
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalSetCmdParser(oriResp, BOTH_SLOT);
+
             case "options":
                 this.setShowList(true);
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalSetCmdParser(oriResp, BOTH_SLOT);
+            default:
+                throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
+
         }
-        throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
     }
 
 }

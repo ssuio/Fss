@@ -13,14 +13,16 @@ public class Bgjob extends FSSCmd {
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
+        String oriResp;
         switch (cmdArr[1]) {
             case "status":
-                return FSSCommander.generalGetCmdParser(oriResp);
             case "delete":
-                return FSSCommander.generalGetCmdParser(oriResp);
+                oriResp = executeFSSCmd(cmd);
+                return  FSSCommander.generalGetCmdParser(oriResp);
+            default:
+                throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
         }
-        throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
     }
 
 }

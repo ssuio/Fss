@@ -13,26 +13,21 @@ public class Oss extends FSSCmd {
     }
 
     @Override
-    public void beforeExecute() throws FSSException {
-        switch (cmdArr[1]) {
-            case "keygen":
-            case "keydel":
-                this.setCmd(FSSCommander.formatDoubleQuote(cmd));
-                break;
-        }
-    }
-
-    @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
+        String oriResp;
         switch (cmdArr[1]) {
             case "keygen":
             case "keydel":
                 this.setShowList(true);
+                cmd = FSSCommander.formatDoubleQuote(cmd);
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalSetCmdParser(oriResp, BOTH_SLOT);
             case "keylist":
             case "keynum":
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalGetCmdParser(oriResp, "id");
         }
         throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
     }
+
 }

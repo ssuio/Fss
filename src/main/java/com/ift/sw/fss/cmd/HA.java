@@ -13,10 +13,10 @@ public class HA extends FSSCmd{
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
         switch (cmdArr[1]){
             case "status":
-                return FSSCommander.generalGetCmdParser(oriResp);
+                return FSSCommander.generalGetCmdParser(executeFSSCmd(cmd));
         }
         throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
     }

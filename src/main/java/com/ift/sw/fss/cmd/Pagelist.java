@@ -14,22 +14,11 @@ public class Pagelist extends FSSCmd {
     }
 
     @Override
-    public void beforeExecute() throws FSSException {
-        switch (cmdArr[1]) {
-            case "user":
-                if (cmdArr[2].equalsIgnoreCase("slotA") || cmdArr[2].equalsIgnoreCase("slotB")) {
-                    this.setCmdOnly(FSSCommander.rmCmdSlots(cmd));
-                } else {
-                    this.setCmdOnly(FSSCommander.formatDoubleQuote(cmd));
-                }
-                break;
-        }
-    }
-
-    @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
+        String oriResp;
         switch (cmdArr[1]) {
             case "folder":
+                oriResp = executeFSSCmd(cmd);
                 if (cmdArr.length == 2) {
                     return FSSCommander.generalGetCmdParser(oriResp, "directory");
                 } else {
@@ -38,6 +27,8 @@ public class Pagelist extends FSSCmd {
             case "user":
             case "group":
                 if (cmdArr[2].equalsIgnoreCase("slotA") || cmdArr[2].equalsIgnoreCase("slotB")) {
+                    cmd = FSSCommander.rmCmdSlots(cmd);
+                    oriResp = executeFSSCmd(cmd, cmdArr[2]);
                     String jsonObjStr[] = oriResp.split("\\s*\r\n\\s*");
                     return new JSONObject(new JSONTokener(jsonObjStr[0]));
                 } else {
@@ -50,36 +41,32 @@ public class Pagelist extends FSSCmd {
                     }
                     if (isUpdateStatus) {
                         this.setShowList(true);
+                        oriResp = executeFSSCmd(cmd);
                         return FSSCommander.generalGetCmdParser(oriResp, "updating");
                     } else {
-                        return FSSCommander.generalGetCmdParser(oriResp, "uid");
+                        oriResp = executeFSSCmd(cmd);
+                        return FSSCommander.generalGetCmdParser(oriResp, cmdArr[1].equalsIgnoreCase("user")?"uid":"gid");
                     }
                 }
             case "ldapuser":
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalGetCmdParser(oriResp, "uid");
             case "ldapgroup":
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalGetCmdParser(oriResp, "cn");
             case "ldapgroupmember":
+                oriResp = executeFSSCmd(cmd);
                 this.setOutPutType(DYNAMIC_KEY_OUTPUT);
                 return FSSCommander.generalGetCmdParser(oriResp, "name");
             case "share":
+                oriResp = executeFSSCmd(cmd);
                 this.setOutPutType(DYNAMIC_KEY_OUTPUT);
                 return FSSCommander.generalGetCmdParser(oriResp, "directory");
             case "groupmember":
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalGetCmdParser(oriResp, "name");
         }
         throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
     }
 
-    @Override
-    public String getAssigmentVal() throws Exception {
-        switch (cmdArr[1]) {
-            case "user":
-            case "group":
-                if (cmdArr[2].equalsIgnoreCase("slotA") || cmdArr[2].equalsIgnoreCase("slotB")) {
-                    return cmdArr[2];
-                }
-        }
-        return FSSCommander.BOTH_SLOT;
-    }
 }

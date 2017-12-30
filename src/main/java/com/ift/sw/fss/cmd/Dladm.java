@@ -13,12 +13,15 @@ public class Dladm extends FSSCmd{
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
+        String oriResp;
         switch (cmdArr[1]){
             case "show":
+                oriResp = executeFSSCmd(cmd);
                 return FSSCommander.getCmdParserByInsertingControllerId(oriResp);
+            default:
+                throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
         }
-        throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
     }
 
 }

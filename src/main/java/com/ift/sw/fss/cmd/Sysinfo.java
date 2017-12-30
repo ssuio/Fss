@@ -13,13 +13,14 @@ public class Sysinfo extends FSSCmd {
     }
 
     @Override
-    public JSONObject parse(String oriResp) throws Exception {
+    protected JSONObject execSetup() throws FSSException {
         switch (cmdArr[1]) {
             case "network":
             case "cpu":
             case "memory":
-                return FSSCommander.getCmdParserByInsertingControllerId(oriResp);
+                return FSSCommander.getCmdParserByInsertingControllerId(executeFSSCmd(cmd));
         }
         throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
     }
+
 }
