@@ -89,4 +89,9 @@ public class Tool {
         sb.reverse();
         return sb.toString().toUpperCase();
     }
+    public static int getArrIdx(byte[] source, byte[] target){
+        String srcStr = new String(source);
+        String tarStr = new String(target);
+        return srcStr.indexOf(tarStr);
+    }
 }

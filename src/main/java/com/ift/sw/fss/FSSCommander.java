@@ -22,6 +22,7 @@ public class FSSCommander {
     public static final String BOTH_SLOT = "both";
     public static final String SLOT_A = "a";
     public static final String SLOT_B = "b";
+    public static final byte[] MAGIC = new byte[]{(byte) 0xAF, (byte)0xFA};
 
     static {
         try {
@@ -95,9 +96,9 @@ public class FSSCommander {
         return arrayParms;
     }
 
-    public static byte[] generateFssPacket(String cmd) {
+    public static byte[] generateFssPacket(String cmd, long reqId) {
         byte[] bArrnew = new byte[BASESIZE + cmd.length()];
-        setHeader(bArrnew, BASESIZE + cmd.length());
+        setHeader(bArrnew, BASESIZE + cmd.length(), reqId);
         try {
             Tool.setValue(bArrnew, cmd.getBytes("UTF-8"), 16, cmd.length());
         } catch (UnsupportedEncodingException e) {
@@ -106,10 +107,11 @@ public class FSSCommander {
         return bArrnew;
     }
 
-    private static void setHeader(byte[] out, int cmdLen) {
+    private static void setHeader(byte[] out, int cmdLen, long reqId) {
         out[0] = (byte) 0xAF;
         out[1] = (byte) 0xFA;
         Tool.setValue(out, 0, 2, 2);
+        Tool.setValue(out, reqId, 4, 4); //set output size
         Tool.setValue(out, cmdLen, 8, 4); //set output size
         Tool.setValue(out, 0, 12, 4);
     }

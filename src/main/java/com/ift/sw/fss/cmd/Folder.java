@@ -24,7 +24,7 @@ public class Folder extends FSSCmd {
                 if (cmd.contains("export=")) {
                     cmd = cmd.replace(cmdArr[cmdArr.length - 1], "");
                 }
-                oriResp = executeFSSCmd(cmd, cmdArr[2]);
+                oriResp = executeFSSCmdUseVVId(cmd, cmdArr[2]);
                 JSONObject obj = FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
                 if (oriResp.contains("exportkey")) {
                     JSONArray dataList = obj.getJSONArray("data");
@@ -39,7 +39,7 @@ public class Folder extends FSSCmd {
                 return obj;
             case "create":
                 this.setShowList(true);
-                oriResp = executeFSSCmd(cmd, cmdArr[2]);
+                oriResp = executeFSSCmdUseVVId(cmd, cmdArr[2]);
                 return FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
             case "status":
                 oriResp = executeFSSCmd(cmd);

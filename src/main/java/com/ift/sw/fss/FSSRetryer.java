@@ -2,23 +2,35 @@ package com.ift.sw.fss;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
-public class FSSRetryer implements Runnable {
+public class FSSRetryer extends ReentrantLock implements Runnable {
     private boolean retry = true;
     private boolean isRetrying = false;
     private BlockingQueue<Object> infoQueue = new LinkedBlockingQueue<>();
+    private Condition con = this.newCondition();
 
     @Override
     public void run() {
         Object info = null;
         while (retry) {
             try {
-                synchronized (infoQueue) {
-                    if (infoQueue.size() <= 0) {
-                        isRetrying = false;
-                        infoQueue.wait();
-                    }
+                this.lock();
+                while (infoQueue.size() <= 0) {
+                    isRetrying = false;
+                    con.await();
                 }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                Tool.printErrorMsg(info.toString() + " interrupted exception.", e);
+            } finally {
+                con.signalAll();
+                this.unlock();
+            }
+
+            try {
                 info = infoQueue.peek();
                 if (info != null) {
                     FSSSocketManager.closeSingle(info);
@@ -27,15 +39,16 @@ public class FSSRetryer implements Runnable {
                 }
                 infoQueue.poll();
             } catch (Exception e) {
-                Tool.printErrorMsg("Retry failed.", e);
-                synchronized (infoQueue) {
-                    try {
-                        infoQueue.wait(600 * 1000); //Retry failed wait 10 mins.
-                    } catch (InterruptedException e1) {
-                        e1.printStackTrace();
-                    }
-                }
                 e.printStackTrace();
+                Tool.printErrorMsg("Retry failed.", e);
+                try {
+                    con.await(600 * 1000, TimeUnit.MILLISECONDS); //Retry failed wait 10 mins.
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                    Tool.printErrorMsg(info.toString() + " interrupted exception.", e1);
+                }
+            } finally {
+                this.unlock();
             }
         }
         if (info != null) {
@@ -44,11 +57,14 @@ public class FSSRetryer implements Runnable {
     }
 
     public void addRetryInfo(Object info) {
-        synchronized (infoQueue) {
+        try{
+            this.lock();
             infoQueue.add(info);
             isRetrying = true;
             Tool.printInfoMsg(info.toString() + " add into retry queue");
-            infoQueue.notifyAll();
+        }finally {
+            con.signalAll();
+            this.unlock();
         }
     }
 
@@ -61,9 +77,12 @@ public class FSSRetryer implements Runnable {
     }
 
     public void setRetry(boolean retry) {
-        this.retry = retry;
-        synchronized (infoQueue) {
-            infoQueue.notifyAll();
+        try{
+            this.retry = retry;
+            this.lock();
+        }finally {
+            con.signalAll();
+            this.unlock();
         }
     }
 }

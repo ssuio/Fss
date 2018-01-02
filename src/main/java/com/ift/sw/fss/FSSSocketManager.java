@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.concurrent.locks.ReentrantLock;
@@ -48,7 +49,9 @@ public class FSSSocketManager implements Runnable {
         } catch (IOException e) {
             throw new FSSException(info.toString()+" channel register failed.");
         } finally {
-            registerLock.unlock();
+            if(registerLock.isHeldByCurrentThread()){
+                registerLock.unlock();
+            }
         }
         return key;
     }
@@ -98,19 +101,21 @@ public class FSSSocketManager implements Runnable {
     public static String execute(Object serviceId, short type, String cmd) throws FSSException {
         SelectionKey key = getKey(serviceId, type);
         FSSChannelInfo info = (FSSChannelInfo) key.attachment();
-        Tool.printErrorMsg(info.toString());
+//        Tool.printErrorMsg(info.toString());
             SocketChannel channel = (SocketChannel) key.channel();
             if (channel != null && channel.isConnected()) {
                 try {
                     info.lock();
                     info.reset();
-                    Tool.printErrorMsg(" reset");
-                    channel.write(ByteBuffer.wrap(FSSCommander.generateFssPacket(cmd)));
+//                    Tool.printErrorMsg(" write: "+ cmd);
+                    long reqId = info.getReqId();
+                    channel.write(ByteBuffer.wrap(FSSCommander.generateFssPacket(cmd, reqId)));
                     do {
                         if (!info.await(type == FSSChannelInfo.GET ? GET_TIMEOUT : SET_TIMEOUT)) {
+                            info.reset();
                             throw new FSSException("Cmd timeout", FSSException.CMD_TIMEOUT);
                         }
-                    } while (!handleReadableData(key));
+                    } while (!handleReadableData(key, reqId));
 //                    Tool.printErrorMsg(" read end.");
                 } catch (FSSException e) {
                     throw e;
@@ -135,12 +140,13 @@ public class FSSSocketManager implements Runnable {
         try {
             info.lock();
             info.reset();
-            ((SocketChannel) key.channel()).write(ByteBuffer.wrap(FSSCommander.generateFssPacket(cmd)));
+            long reqId = info.getReqId();
+            ((SocketChannel) key.channel()).write(ByteBuffer.wrap(FSSCommander.generateFssPacket(cmd, reqId)));
             do {
                 if (!info.await(EXT_TIMEOUT)) {
                     throw new FSSException("Cmd timeout", FSSException.CMD_TIMEOUT);
                 }
-            } while (!handleReadableData(key));
+            } while (!handleReadableData(key, reqId));
         } catch (FSSException e) {
             throw e;
         } catch (Exception e) {
@@ -229,42 +235,54 @@ public class FSSSocketManager implements Runnable {
         oldSelector.close();
     }
 
-    public static boolean handleReadableData(SelectionKey key) throws IOException, FSSException {
+    public static boolean handleReadableData(SelectionKey key, long reqId) throws IOException, FSSException {
         FSSChannelInfo info = (FSSChannelInfo) key.attachment();
         ByteBuffer readBuff = info.getBuffer();
         SocketChannel channel = (SocketChannel) key.channel();
         readBuff.clear();
 
         byte[] tmpBuff = new byte[ channel.read(readBuff)]; //Might happen remote force disconnect problem
-        Tool.printErrorMsg("length:"+tmpBuff.length);
+//        Tool.printErrorMsg("length:"+tmpBuff.length);
         if(tmpBuff.length == 0) return false;
         readBuff.flip();
         readBuff.get(tmpBuff, 0, tmpBuff.length);
-        Tool.printErrorMsg(Tool.getHexBytesString(tmpBuff));
+//        Tool.printErrorMsg(Tool.getHexBytesString(tmpBuff));
+        int dataTotalLength = 0;
         byte[] preData = info.getResult();
         byte[] result;
 
-        if(preData.length <= 0 && (!isSSL && tmpBuff[0] == (byte) 0xAF && tmpBuff[1] == (byte) 0xFA)){
-            info.setDataLength(Tool.getInt(tmpBuff, 8, 4));
-            Tool.printErrorMsg("info setDatalength" + Tool.getInt(tmpBuff, 8, 4));
-            result = tmpBuff;
-        }else if(preData.length > 0){
-            result = new byte[preData.length + tmpBuff.length];
-            System.arraycopy(preData, 0, result, 0, preData.length);
-            System.arraycopy(tmpBuff, 0, result, preData.length, tmpBuff.length);
-        }else{
-            throw new FSSException("handleReadData transport flow not correct.");
+        result = new byte[preData.length + tmpBuff.length];
+        System.arraycopy(preData, 0, result, 0, preData.length);
+        System.arraycopy(tmpBuff, 0, result, preData.length, tmpBuff.length);
+
+        int headerStart;
+        while((result.length) > FSSCommander.BASESIZE){
+            if(!isSSL && result[0] == (byte) 0xAF && result[1] == (byte) 0xFA){
+                dataTotalLength = Tool.getInt(result, 8, 4);
+                break;
+            }else if((headerStart = Tool.getArrIdx(result, FSSCommander.MAGIC)) != -1){
+                info.setResult(Arrays.copyOfRange(result, headerStart, result.length));
+                Tool.printInfoMsg("Research header magic succ.");
+            }else{
+                Tool.printErrorMsg("Research header failed.");
+                break;
+            }
         }
+
         info.setResult(result);
-        int dataTotalLength = info.getDataLength();
-        if (dataTotalLength <= result.length) {
-            Tool.printErrorMsg("Finish dataTotalLength:"+ dataTotalLength + " resultLength:" + result.length);
-            readBuff.clear();
-            Tool.printErrorMsg(info.getOutPutStr());
-            return true;
-        }else{
-            Tool.printErrorMsg("Joining dataTotalLength:"+ dataTotalLength + " resultLength:" + result.length);
+        if(dataTotalLength != 0 && dataTotalLength <= result.length){
+            if(reqId == Tool.getInt(result, 4, 4)){
+//                Tool.printErrorMsg("Finish dataTotalLength:"+ dataTotalLength + " resultLength:" + result.length);
+                readBuff.clear();
+//                Tool.printErrorMsg(info.getOutPutStr());
+                return true;
+            }else{
+                info.setResult(Arrays.copyOfRange(result, dataTotalLength, result.length));
+                Tool.printInfoMsg("handleReadData discard previous response.");
+                return handleReadableData(key, reqId);
+            }
         }
+
         return false;
     }
 

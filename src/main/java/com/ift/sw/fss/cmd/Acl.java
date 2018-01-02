@@ -18,12 +18,12 @@ public class Acl extends FSSCmd {
         switch (cmdArr[1]) {
             case "set":
                 cmd = cmd.replace("\\\"", "\\\\\"");
-                oriResp = this.executeFSSCmd(cmd, cmdArr[2]);
+                oriResp = this.executeFSSCmd(cmd, FSSCommander.formatPathAssignment(cmdArr[2]));
                 return FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
             case "get":
                 cmd = cmd.replace("\\\"", "\\\\\"");
             case "delete":
-                oriResp = this.executeFSSCmd(cmd, cmdArr[2]);
+                oriResp = this.executeFSSCmd(cmd, FSSCommander.formatPathAssignment(cmdArr[2]));
                 return FSSCommander.generalGetCmdParser(oriResp, "id");
             default:
                 throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);

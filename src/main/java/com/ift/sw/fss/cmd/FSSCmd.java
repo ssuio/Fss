@@ -12,7 +12,6 @@ public abstract class FSSCmd {
     public static final short CLI = 3;
     public static final boolean BOTH_SLOT = true;
     public static final boolean SINGLE_SLOT = false;
-    public static int OP_USE_VVID = 1 << 0;
     public static int OP_SHOW_LIST = 1 << 2;
     public static int OP_HANDLE_BG = 1 << 3;
     public static final short GENERAL_OUTPUT = 0;

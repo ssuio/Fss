@@ -16,8 +16,8 @@ public class FSSChannelInfo extends ReentrantLock {
     private short type;
     private ByteBuffer buffer = ByteBuffer.allocate(6144);
     private byte[] result;
-    private int dataLength = 0;
     private Condition con = this.newCondition();
+    private long reqId = 1;
 
     public FSSChannelInfo(Object serviceId, String ip, short type) {
         this.ip = ip;
@@ -49,16 +49,7 @@ public class FSSChannelInfo extends ReentrantLock {
         this.result = result;
     }
 
-    public void setDataLength(int dataLength) {
-        this.dataLength = dataLength;
-    }
-
-    public int getDataLength() {
-        return this.dataLength;
-    }
-
     public void reset() {
-        this.dataLength = 0;
         this.result = new byte[]{};
     }
 
@@ -76,6 +67,10 @@ public class FSSChannelInfo extends ReentrantLock {
 
     public void setIp(String ip) {
         this.ip = ip;
+    }
+
+    public long getReqId(){
+        return reqId++;
     }
 
     @Override
