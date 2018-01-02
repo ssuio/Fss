@@ -241,6 +241,7 @@ public class FSSSocketManager implements Runnable {
         SocketChannel channel = (SocketChannel) key.channel();
         readBuff.clear();
 
+        //Read data and combine with left data
         byte[] tmpBuff = new byte[ channel.read(readBuff)]; //Might happen remote force disconnect problem
 //        Tool.printErrorMsg("length:"+tmpBuff.length);
         if(tmpBuff.length == 0) return false;
@@ -250,11 +251,11 @@ public class FSSSocketManager implements Runnable {
         int dataTotalLength = 0;
         byte[] preData = info.getResult();
         byte[] result;
-
         result = new byte[preData.length + tmpBuff.length];
         System.arraycopy(preData, 0, result, 0, preData.length);
         System.arraycopy(tmpBuff, 0, result, preData.length, tmpBuff.length);
 
+        //Check header
         int headerStart;
         while((result.length) > FSSCommander.BASESIZE){
             if(!isSSL && result[0] == (byte) 0xAF && result[1] == (byte) 0xFA){
@@ -269,16 +270,17 @@ public class FSSSocketManager implements Runnable {
             }
         }
 
+        //Check data
         info.setResult(result);
         if(dataTotalLength != 0 && dataTotalLength <= result.length){
-            if(reqId == Tool.getInt(result, 4, 4)){
+            if(reqId == Tool.getInt(result, FSSCommander.REQ_ID_OFFSET, 4)){
 //                Tool.printErrorMsg("Finish dataTotalLength:"+ dataTotalLength + " resultLength:" + result.length);
-                readBuff.clear();
 //                Tool.printErrorMsg(info.getOutPutStr());
                 return true;
             }else{
+                //Discard previous resp
                 info.setResult(Arrays.copyOfRange(result, dataTotalLength, result.length));
-                Tool.printInfoMsg("handleReadData discard previous response.");
+                Tool.printInfoMsg("handleReadData discard previous resp.");
                 return handleReadableData(key, reqId);
             }
         }

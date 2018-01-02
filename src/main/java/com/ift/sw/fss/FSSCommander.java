@@ -23,6 +23,7 @@ public class FSSCommander {
     public static final String SLOT_A = "a";
     public static final String SLOT_B = "b";
     public static final byte[] MAGIC = new byte[]{(byte) 0xAF, (byte)0xFA};
+    public static final int REQ_ID_OFFSET = 4;
 
     static {
         try {

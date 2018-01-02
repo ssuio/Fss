@@ -10,6 +10,7 @@ public abstract class FSSCmd {
     public static final short GET = 1;
     public static final short EXT = 2;
     public static final short CLI = 3;
+    public static final short NONE = 9;
     public static final boolean BOTH_SLOT = true;
     public static final boolean SINGLE_SLOT = false;
     public static int OP_SHOW_LIST = 1 << 2;
@@ -20,7 +21,7 @@ public abstract class FSSCmd {
     private short outPutType = GENERAL_OUTPUT;
     private int ops = 0;
     protected FSSAgent fss;
-    protected short cmdType = EXT;
+    protected short cmdType = NONE;
     protected String cmd;
     protected String[] cmdArr;
     protected String slot = FSSCommander.BOTH_SLOT;
@@ -90,7 +91,7 @@ public abstract class FSSCmd {
         }else{
             String finalCmd;
             finalCmd = FSSCommander.formatFSSCmd(cmd, this.getSlot(), fss.getServiceId());
-            return fss.traveler.executeWhenFSSNotAlive(finalCmd, this.getCmdType());
+            return fss.traveler.executeWhenFSSNotAlive(finalCmd, getCmdType()==NONE ? GET : getCmdType());
         }
     }
 

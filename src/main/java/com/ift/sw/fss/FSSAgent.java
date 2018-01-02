@@ -67,7 +67,9 @@ public class FSSAgent {
     }
 
     public String execute(FSSCmd fssCmd) throws FSSException {
-        return execute(fssCmd.getCmd(), fssCmd.getCmdType(), fssCmd.getSlot());
+        return execute(fssCmd.getCmd(),
+                fssCmd.getCmdType()==FSSCmd.NONE ? FSSCmd.GET : fssCmd.getCmdType(),
+                fssCmd.getSlot());
     }
 
     public void close() {
