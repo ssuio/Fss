@@ -90,7 +90,6 @@ public abstract class FSSCmd {
     }
 
     protected String executeFSSCmd(String cmd) throws FSSException {
-        Tool.printDebugMsg("executeFSSCmd "+this.toString());
         this.setCmd(cmd);
         if(this.fss != null && this.fss.isAlive()){
             return fss.execute(this);
