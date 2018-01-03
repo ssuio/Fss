@@ -96,29 +96,33 @@ public abstract class FSSCmd {
     }
 
     protected JSONObject handleBgJob(JSONObject msgObj) throws FSSException {
-        JSONObject obj = msgObj.getJSONArray("cliCode").getJSONObject(0);
-        String code = obj.getString("Return");
-        int intCode = Integer.parseInt(code.substring(2), 16);
-        if (intCode == 16) {
-            //check background status
-            JSONObject dataObj = msgObj.optJSONArray("data").getJSONObject(0);
-            String jobId = dataObj.getString("jobID");
-            String bgjobCommand = "bgjob status -i " + jobId;
-            while (true) {
-                String oriResp;
-                oriResp = executeFSSCmd(bgjobCommand);
-                obj = FSSCommander.generalGetCmdParser(oriResp);
-                dataObj = obj.getJSONArray("data").getJSONObject(0);
-                if (dataObj.getInt("percentage") == 100) {
-                    if (dataObj.getInt("result") == 0) {
-                        return obj;
-                    } else {
-                        throw new FSSException("handle bg job failed.");
+        try{
+            JSONObject obj = msgObj.getJSONArray("cliCode").getJSONObject(0);
+            String code = obj.getString("Return");
+            int intCode = Integer.parseInt(code.substring(2), 16);
+            if (intCode == 16) {
+                //check background status
+                JSONObject dataObj = msgObj.optJSONArray("data").getJSONObject(0);
+                String jobId = dataObj.getString("jobID");
+                String bgjobCommand = "bgjob status -i " + jobId;
+                while (true) {
+                    String oriResp;
+                    oriResp = executeFSSCmd(bgjobCommand);
+                    obj = FSSCommander.generalGetCmdParser(oriResp);
+                    dataObj = obj.getJSONArray("data").getJSONObject(0);
+                    if (dataObj.getInt("percentage") == 100) {
+                        if (dataObj.getInt("result") == 0) {
+                            return obj;
+                        } else {
+                            throw new FSSException("handle bg job failed.");
+                        }
                     }
                 }
             }
+            return msgObj;
+        }catch (Exception e){
+            throw new FSSException("unhandle exception bg job failed.");
         }
-        return msgObj;
     }
 
     public boolean isShowList() {
