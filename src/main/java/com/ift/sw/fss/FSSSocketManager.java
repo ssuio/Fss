@@ -291,11 +291,15 @@ public class FSSSocketManager implements Runnable {
     public static JSONObject getDebugInfo() {
         JSONObject obj = new JSONObject();
         JSONArray channels = new JSONArray();
-        for (SelectionKey key : selector.keys()) {
-            channels.put(key.attachment().toString());
+        try{
+            for (SelectionKey key : selector.keys()) {
+                channels.put(key.attachment().toString());
+            }
+            obj.put("channels", channels);
+            obj.put("registerLock", registerLock.isLocked());
+        }catch (Exception e){
+            Tool.printErrorMsg("Debug log failed.", e);
         }
-        obj.put("channels", channels);
-        obj.put("registerLock", registerLock.isLocked());
         return obj;
     }
 
