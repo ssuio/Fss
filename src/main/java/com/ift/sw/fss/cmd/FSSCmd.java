@@ -91,7 +91,7 @@ public abstract class FSSCmd {
         }else{
             String finalCmd;
             finalCmd = FSSCommander.formatFSSCmd(cmd, this.getSlot(), fss.getServiceId());
-            return fss.traveler.executeWhenFSSNotAlive(finalCmd, getCmdType()==NONE ? GET : getCmdType());
+            return fss.traveler.executeWhenFSSNotAlive(finalCmd, getCmdType()==NONE ? EXT : getCmdType());
         }
     }
 

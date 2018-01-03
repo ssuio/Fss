@@ -29,9 +29,10 @@ public class VPN extends FSSCmd {
                 oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalGetCmdParser(oriResp);
             case "config":
-                if (this.cmdArr.length <= 4)
+                if (this.cmdArr.length <= 4){
                     oriResp = executeFSSCmd(cmd);
                     return getCmdParserByInsertingControllerId(oriResp);
+                }
             case "cut":
             case "act":
             case "mschap":
