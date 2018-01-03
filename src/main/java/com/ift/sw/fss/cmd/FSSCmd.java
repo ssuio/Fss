@@ -66,14 +66,12 @@ public abstract class FSSCmd {
         try{
             JSONObject obj = execSetup();
             return isHandleBgJob() ? this.handleBgJob(obj) : obj;
+        }catch (FSSException e){
+            throw e;
+        }catch (JSONException e){
+            throw new FSSException("Parser error: " + e.toString());
         }catch (Exception e){
-            if(e instanceof FSSException){
-                throw e;
-            }else if(e instanceof JSONException){
-                throw new FSSException("Parser error: " + e.toString());
-            }else{
-                throw new FSSException(this.toString() + " unhandle exception when execute fsscmd. "+e.toString());
-            }
+            throw new FSSException(this.toString() + " unhandle exception when execute fsscmd. "+e.toString());
         }
     }
 
