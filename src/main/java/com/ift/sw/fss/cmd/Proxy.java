@@ -15,7 +15,7 @@ public class Proxy extends FSSCmd {
     }
 
     @Override
-    protected JSONObject execSetup() throws FSSException {
+    protected JSONObject execSetup() throws FSSException, JSONException {
         String oriResp;
         this.setShowList(true);
         switch (cmdArr[1]) {

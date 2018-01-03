@@ -5,6 +5,7 @@ import com.ift.sw.fss.FSSCommander;
 import com.ift.sw.fss.FSSException;
 import com.ift.sw.fss.FSSTag;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -17,7 +18,7 @@ public class Folder extends FSSCmd {
     }
 
     @Override
-    protected JSONObject execSetup() throws FSSException {
+    protected JSONObject execSetup() throws FSSException, JSONException {
         String oriResp;
         switch (cmdArr[1]) {
             case "options":

@@ -19,7 +19,7 @@ public class VPN extends FSSCmd {
     }
 
     @Override
-    protected JSONObject execSetup() throws FSSException {
+    protected JSONObject execSetup() throws FSSException, JSONException {
         String oriResp = "";
         switch (this.cmdArr[1]) {
             case "status":

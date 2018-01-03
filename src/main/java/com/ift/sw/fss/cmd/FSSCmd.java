@@ -3,6 +3,7 @@ package com.ift.sw.fss.cmd;
 import com.ift.sw.fss.FSSAgent;
 import com.ift.sw.fss.FSSCommander;
 import com.ift.sw.fss.FSSException;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public abstract class FSSCmd {
@@ -59,7 +60,7 @@ public abstract class FSSCmd {
         return cmdType;
     }
 
-    protected abstract JSONObject execSetup()throws FSSException;
+    protected abstract JSONObject execSetup() throws FSSException, JSONException;
 
     public JSONObject execute() throws FSSException{
         try{
@@ -68,6 +69,8 @@ public abstract class FSSCmd {
         }catch (Exception e){
             if(e instanceof FSSException){
                 throw e;
+            }else if(e instanceof JSONException){
+                throw new FSSException("Parser error: " + e.toString());
             }else{
                 throw new FSSException(this.toString() + " unhandle exception when execute fsscmd. "+e.toString());
             }

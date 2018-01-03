@@ -5,6 +5,7 @@ import com.ift.sw.fss.FSSCommander;
 import com.ift.sw.fss.FSSException;
 import com.ift.sw.fss.FSSTag;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Map;
@@ -18,7 +19,7 @@ public class Cliver extends FSSCmd {
     }
 
     @Override
-    public JSONObject execSetup() throws FSSException {
+    public JSONObject execSetup() throws FSSException, JSONException {
         String oriResp = executeFSSCmd(cmd);
         JSONObject obj = FSSCommander.generalGetCmdParser(oriResp);
         int len = obj.optJSONArray("data").length();

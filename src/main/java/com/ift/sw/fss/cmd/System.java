@@ -4,6 +4,7 @@ import com.ift.sw.fss.FSSAgent;
 import com.ift.sw.fss.FSSCommander;
 import com.ift.sw.fss.FSSException;
 import com.ift.sw.fss.FSSTag;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 @FSSTag(key = "system")
@@ -13,7 +14,7 @@ public class System extends FSSCmd {
     }
 
     @Override
-    protected JSONObject execSetup() throws FSSException {
+    protected JSONObject execSetup() throws FSSException, JSONException {
         switch (cmdArr[1]) {
             case "iostat":
                 return FSSCommander.generalGetCmdParser(executeFSSCmd(cmd), "name");
