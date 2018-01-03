@@ -32,6 +32,7 @@ public abstract class FSSCmd {
         this.fss = fss;
         this.cmd = cmd;
         this.cmdArr = FSSCommander.cmdSplit(cmd);
+        this.config();
     }
 
     public String getCmd() {
@@ -60,6 +61,8 @@ public abstract class FSSCmd {
     public short getCmdType() {
         return cmdType;
     }
+
+    protected void config() throws FSSException {}
 
     protected abstract JSONObject execSetup() throws FSSException, JSONException;
 
