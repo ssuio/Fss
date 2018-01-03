@@ -22,6 +22,7 @@ public class FSSAgent {
 
             //Get NAS cli version
             FSSCommander.generateFSSCmd(this, "cliver").execute();
+            Tool.printDebugMsg("Get cliver finished.");
         } catch (Exception e) {
             close();
             throw e;

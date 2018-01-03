@@ -28,8 +28,10 @@ public class FSSCommander {
     static {
         try {
             REF = new Reflections("com.ift.sw.fss.cmd");
+            Tool.printDebugMsg("new reflection succ.");
         } catch (Exception e) {
             e.printStackTrace();
+            Tool.printErrorMsg("new reflection failed.", e);
         }
         for (Class<?> cl : REF.getTypesAnnotatedWith(FSSTag.class)) {
             FSSTag fssTag = cl.getAnnotation(FSSTag.class);
@@ -121,6 +123,7 @@ public class FSSCommander {
         String[] cmdArr = FSSCommander.cmdSplit(cmd);
         try {
             Class c = Class.forName(CMD_CLASS_MAP.get(cmdArr[0]));
+            Tool.printDebugMsg(cmd + " get target class");
             Class[] params = new Class[]{FSSAgent.class, String.class};
             Constructor constructor = c.getConstructor(params);
             return (FSSCmd) constructor.newInstance(fss, cmd);
