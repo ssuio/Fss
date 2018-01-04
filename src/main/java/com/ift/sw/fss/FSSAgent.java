@@ -16,8 +16,11 @@ public class FSSAgent {
         this.ip = ip;
         this.traveler = traveler;
         try {
+            //Default connect two channels
             this.connect(FSSChannelInfo.GET);
             this.connect(FSSChannelInfo.SET);
+
+            //Start retryer for this agent
             new Thread(retryer, "FSSRetryer-" + ip.replaceAll("\\.", "_")).start();
 
             //Get NAS cli version
@@ -34,7 +37,7 @@ public class FSSAgent {
         try {
             FSSSocketManager.register(info);
         } catch (Exception e) {
-            e.printStackTrace();
+            Tool.printErrorMsg("Connect failed:" + info.toString(), e);
             retryer.addRetryInfo(info);
         }
         Tool.printInfoMsg(info.toString() + " registered.");
@@ -100,5 +103,16 @@ public class FSSAgent {
 
     public void setServiceId(String serviceId) {
         this.serviceId = serviceId;
+    }
+
+    @Override
+    public String toString() {
+        return "FSSAgent{" +
+                "serviceId='" + serviceId + '\'' +
+                ", ip='" + ip + '\'' +
+                ", cliver='" + cliver + '\'' +
+                ", retryer=" + retryer +
+                ", traveler=" + traveler +
+                '}';
     }
 }

@@ -63,6 +63,7 @@ public class FSSSocketManager implements Runnable {
                     FSSChannelInfo info = (FSSChannelInfo) key.attachment();
                     if (serviceId == info.getServiceIdObj()) {
                         key.channel().close();
+                        Tool.printInfoMsg("Remove channel:" + info.toString());
                     }
                 }
             } catch (ConcurrentModificationException e) {
@@ -84,6 +85,7 @@ public class FSSSocketManager implements Runnable {
                     FSSChannelInfo info = (FSSChannelInfo) key.attachment();
                     if (attachment == info) {
                         key.channel().close();
+                        Tool.printInfoMsg("Remove channel:" + info.toString());
                     }
                 }
             } catch (ConcurrentModificationException e) {
@@ -197,6 +199,7 @@ public class FSSSocketManager implements Runnable {
                         iterator.remove();
                     }
                 }
+                //For register channel
                 try {
                     registerLock.lock();
                 } finally {
@@ -209,6 +212,7 @@ public class FSSSocketManager implements Runnable {
         }
     }
 
+    //If need to relaunch selector
     public static void rebuildSelector() throws IOException {
         final Selector oldSelector = selector;
         final Selector newSelector;
@@ -281,7 +285,7 @@ public class FSSSocketManager implements Runnable {
                 //Discard previous resp
                 info.setResult(Arrays.copyOfRange(result, dataTotalLength, result.length));
                 Tool.printInfoMsg("handleReadData discard previous resp.");
-                return handleReadableData(key, reqId);
+                return handleReadableData(key, reqId); // little recursive...
             }
         }
 

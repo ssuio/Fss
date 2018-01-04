@@ -40,7 +40,7 @@ public class FSSRetryer extends ReentrantLock implements Runnable {
                 infoQueue.poll();
             } catch (Exception e) {
                 e.printStackTrace();
-                Tool.printErrorMsg("Retry failed.", e);
+                Tool.printErrorMsg("Retry failed. Sleep 10 minutes.", e);
                 try {
                     con.await(600 * 1000, TimeUnit.MILLISECONDS); //Retry failed wait 10 mins.
                 } catch (InterruptedException e1) {
@@ -84,5 +84,15 @@ public class FSSRetryer extends ReentrantLock implements Runnable {
             con.signalAll();
             this.unlock();
         }
+    }
+
+    @Override
+    public String toString() {
+        return "FSSRetryer{" +
+                "retry=" + retry +
+                ", isRetrying=" + isRetrying +
+                ", infoQueue=" + infoQueue +
+                ", con=" + con +
+                '}';
     }
 }
