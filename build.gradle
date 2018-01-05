@@ -3,8 +3,6 @@ version '1.0'
 
 apply plugin: 'java'
 
-def LIB_PATH = '../../Library/java/'
-
 sourceCompatibility = 1.7
 
 repositories {
