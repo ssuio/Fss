@@ -19,10 +19,10 @@ public class UserAdmin extends FSSCmd {
         if ("user".equalsIgnoreCase(cmdArr[1])) {
             switch (cmdArr[2]) {
                 case "add":
-                    cmd = FSSCommander.formatDoubleQuote(cmd);
                 case "delete":
                 case "modify":
                     this.setShowList(true);
+                    cmd = FSSCommander.formatDoubleQuote(cmd);
                     oriResp = executeFSSCmd(cmd);
                     return FSSCommander.generalSetCmdParser(oriResp, BOTH_SLOT);
                 case "list":

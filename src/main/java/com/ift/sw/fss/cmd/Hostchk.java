@@ -17,7 +17,9 @@ public class Hostchk extends FSSCmd{
     protected JSONObject execSetup() throws FSSException, JSONException {
         switch (cmdArr[1]){
             case "name":
-                return FSSCommander.generalSetCmdParser(executeFSSCmd(cmd), BOTH_SLOT);
+                this.setOutPutType(CHKHOST_OUTPUT);
+                String oriResp = executeFSSCmd(cmd);
+                return FSSCommander.generalSetCmdParser( oriResp, BOTH_SLOT);
         }
         throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
     }

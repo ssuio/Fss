@@ -20,6 +20,9 @@ public class Dladm extends FSSCmd{
             case "show":
                 oriResp = executeFSSCmd(cmd);
                 return FSSCommander.getCmdParserByInsertingControllerId(oriResp);
+            case "setall":
+                oriResp = executeFSSCmd(cmd);
+                return FSSCommander.generalSetCmdParser(oriResp, BOTH_SLOT);
             default:
                 throw new FSSException(FSSException.RESULT_UNKNOWN_PARAM);
         }
