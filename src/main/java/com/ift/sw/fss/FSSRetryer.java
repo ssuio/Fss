@@ -18,7 +18,7 @@ public class FSSRetryer extends ReentrantLock implements Runnable {
         while (retry) {
             try {
                 this.lock();
-                while (infoQueue.size() <= 0) {
+                while (infoQueue.size() <= 0 && retry) {
                     isRetrying = false;
                     con.await();
                 }
