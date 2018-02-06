@@ -51,7 +51,7 @@ public class FSSAgent {
                     FSSSocketManager.execute(serviceId, cmdType, finalCmd);
         } catch (FSSException e) {
             if (e.getErrorCode() == FSSException.REMOTE_FORCE_DISCONNECT) {
-                if(e.getInfo().getType() == FSSChannelInfo.GET || e.getInfo().getType() == FSSChannelInfo.SET ){
+                if (e.getInfo().getType() == FSSChannelInfo.GET || e.getInfo().getType() == FSSChannelInfo.SET) {
                     retryer.addRetryInfo(e.getInfo());
                 }
             }
@@ -72,8 +72,21 @@ public class FSSAgent {
 
     public String execute(FSSCmd fssCmd) throws FSSException {
         return execute(fssCmd.getCmd(),
-                fssCmd.getCmdType()==FSSCmd.NONE ? FSSCmd.EXT : fssCmd.getCmdType(),
+                fssCmd.getCmdType() == FSSCmd.NONE ? FSSCmd.EXT : fssCmd.getCmdType(),
                 fssCmd.getSlot());
+    }
+
+    public String executeDirectly(FSSCmd fssCmd) throws FSSException {
+        short cmdType = fssCmd.getCmdType();
+        String oriResp;
+        try {
+            oriResp = cmdType == FSSChannelInfo.EXT ?
+                    FSSSocketManager.execute(ip, serviceId, fssCmd.getCmd()) :
+                    FSSSocketManager.execute(serviceId, cmdType, fssCmd.getCmd());
+        } catch (Exception e) {
+            throw new FSSException("Execute cmd directly failed.");
+        }
+        return oriResp;
     }
 
     public void close() {
