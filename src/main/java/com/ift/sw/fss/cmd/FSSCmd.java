@@ -44,6 +44,10 @@ public abstract class FSSCmd {
         this.cmdArr = FSSCommander.cmdSplit(cmd);
     }
 
+    public void modifyCmd(String cmd) {
+        this.cmd = cmd;
+    }
+
     public String getSlot() {
         return slot;
     }
@@ -66,17 +70,21 @@ public abstract class FSSCmd {
 
     protected abstract JSONObject execSetup() throws FSSException, JSONException;
 
-    public JSONObject execute() throws FSSException{
-        try{
+    public JSONObject execute() throws FSSException {
+        try {
             JSONObject obj = execSetup();
             return isHandleBgJob() ? this.handleBgJob(obj) : obj;
-        }catch (FSSException e){
+        } catch (FSSException e) {
             throw e;
-        }catch (JSONException e){
+        } catch (JSONException e) {
             throw new FSSException("Parser error: " + e.toString());
-        }catch (Exception e){
-            throw new FSSException(this.toString() + " unhandle exception when execute fsscmd. "+e.toString());
+        } catch (Exception e) {
+            throw new FSSException(this.toString() + " unhandle exception when execute fsscmd. " + e.toString());
         }
+    }
+
+    protected String getAssigmentCmdSlot() throws FSSException {
+        return this.fss.traveler.getFSSCmdAssignment(null, cmd, false);
     }
 
     protected String executeFSSCmdUseVVId(String cmd, String assignVal) throws FSSException {
@@ -91,17 +99,26 @@ public abstract class FSSCmd {
 
     protected String executeFSSCmd(String cmd) throws FSSException {
         this.setCmd(cmd);
-        if(this.fss != null && this.fss.isAlive()){
+        if (this.fss != null && this.fss.isAlive()) {
             return fss.execute(this);
-        }else{
+        } else {
             String finalCmd;
             finalCmd = FSSCommander.formatFSSCmd(cmd, this.getSlot(), fss.getServiceId());
-            return fss.traveler.executeWhenFSSNotAlive(finalCmd, getCmdType()==NONE ? EXT : getCmdType());
+            return fss.traveler.executeWhenFSSNotAlive(finalCmd, getCmdType() == NONE ? EXT : getCmdType());
+        }
+    }
+
+    protected String executeFSSCmdDirectly(String cmd) throws FSSException {
+        this.setCmd(cmd);
+        if (this.fss != null && this.fss.isAlive()) {
+            return fss.executeDirectly(this);
+        } else {
+            return fss.traveler.executeWhenFSSNotAlive(cmd, getCmdType() == NONE ? EXT : getCmdType());
         }
     }
 
     protected JSONObject handleBgJob(JSONObject msgObj) throws FSSException {
-        try{
+        try {
             JSONObject obj = msgObj.getJSONArray("cliCode").getJSONObject(0);
             String code = obj.getString("Return");
             int intCode = Integer.parseInt(code.substring(2), 16);
@@ -125,7 +142,7 @@ public abstract class FSSCmd {
                 }
             }
             return msgObj;
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new FSSException("unhandle exception bg job failed.");
         }
     }
@@ -135,7 +152,7 @@ public abstract class FSSCmd {
     }
 
     public void setShowList(boolean showList) {
-        ops = showList ? ops|OP_SHOW_LIST : ops^OP_SHOW_LIST;
+        ops = showList ? ops | OP_SHOW_LIST : ops ^ OP_SHOW_LIST;
     }
 
     public boolean isHandleBgJob() {
@@ -143,7 +160,7 @@ public abstract class FSSCmd {
     }
 
     public FSSCmd setHandleBgJob(boolean handleBgJob) {
-        ops = handleBgJob ? ops|OP_HANDLE_BG : ops^OP_HANDLE_BG;
+        ops = handleBgJob ? ops | OP_HANDLE_BG : ops ^ OP_HANDLE_BG;
         return this;
     }
 
