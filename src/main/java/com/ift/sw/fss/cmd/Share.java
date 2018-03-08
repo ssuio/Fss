@@ -23,7 +23,7 @@ public class Share extends FSSCmd {
                 oriResp = executeFSSCmd(cmd);
                 return FSSCommander.generalGetCmdParser(oriResp, "directory");
             case "options":
-                oriResp = executeFSSCmd(cmd, cmdArr[2]);
+                oriResp = executeFSSCmd(cmd, FSSCommander.formatPathAssignment(cmdArr[2]));
                 return FSSCommander.generalSetCmdParser(oriResp, SINGLE_SLOT);
             default:
                 oriResp = executeFSSCmd(cmd, FSSCommander.formatPathAssignment(cmdArr[1]));
