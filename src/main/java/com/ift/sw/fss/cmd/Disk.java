@@ -31,9 +31,8 @@ public class Disk extends FSSCmd {
 
             case "expand":
                 String diskShowCmd = "disk show " + cmdArr[2];
-                String Resp = null;
-                Resp = executeFSSCmd(diskShowCmd, FSSCommander.BOTH_SLOT);
-                JSONObject tmpObj = FSSCommander.generalGetCmdParser(Resp, "diskID");
+                FSSCmd diskShow = FSSCommander.generateFSSCmd(this.fss, diskShowCmd);
+                JSONObject tmpObj = diskShow.execute();
                 JSONArray diskList = tmpObj.getJSONArray("data");
                 tmpObj = diskList.getJSONObject(0); // get first object
                 oriResp = executeFSSCmdUseVVId(cmd, tmpObj.getString("serial"));
