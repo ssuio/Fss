@@ -47,9 +47,9 @@ public class FSSSocketManager implements Runnable {
             key = channel.register(selector, OP_READ, info);
             Tool.printDebugMsg(info.toString() + " register succ.");
         } catch (IOException e) {
-            throw new FSSException(info.toString()+" channel register failed.");
+            throw new FSSException(info.toString() + " channel register failed.");
         } finally {
-            if(registerLock.isHeldByCurrentThread()){
+            if (registerLock.isHeldByCurrentThread()) {
                 registerLock.unlock();
             }
         }
@@ -103,42 +103,43 @@ public class FSSSocketManager implements Runnable {
     public static String execute(Object serviceId, short type, String cmd) throws FSSException {
         SelectionKey key = getKey(serviceId, type);
         FSSChannelInfo info = (FSSChannelInfo) key.attachment();
-//        Tool.printErrorMsg(info.toString());
-            SocketChannel channel = (SocketChannel) key.channel();
-            if (channel != null && channel.isConnected()) {
-                try {
-                    info.lock();
-                    info.reset();
-//                    Tool.printErrorMsg(" write: "+ cmd);
-                    long reqId = info.getReqId();
-                    channel.write(ByteBuffer.wrap(FSSCommander.generateFssPacket(cmd, reqId)));
-                    do {
-                        if (!info.await(type == FSSChannelInfo.GET ? GET_TIMEOUT : SET_TIMEOUT)) {
-                            info.reset();
-                            throw new FSSException("Cmd timeout", FSSException.CMD_TIMEOUT);
-                        }
-                    } while (!handleReadableData(key, reqId));
-//                    Tool.printErrorMsg(" read end.");
-                } catch (FSSException e) {
-                    throw e;
-                } catch (IOException e) { //Maybe is remote side force disconnect.
-                    if (info.getType() == FSSChannelInfo.GET || info.getType() == FSSChannelInfo.SET) {
-                        throw new FSSException(FSSException.REMOTE_FORCE_DISCONNECT, info);
+        Tool.printDebugMsg(info.toString());
+        Tool.printDebugMsg("cmd:" + cmd);
+        SocketChannel channel = (SocketChannel) key.channel();
+        if (channel != null && channel.isConnected()) {
+            try {
+                info.lock();
+                info.reset();
+                long reqId = info.getReqId();
+                channel.write(ByteBuffer.wrap(FSSCommander.generateFssPacket(cmd, reqId)));
+                do {
+                    if (!info.await(type == FSSChannelInfo.GET ? GET_TIMEOUT : SET_TIMEOUT)) {
+                        info.reset();
+                        throw new FSSException("Cmd timeout", FSSException.CMD_TIMEOUT);
                     }
-                } catch (InterruptedException e) {
-                    throw new FSSException("handleReadData failed." + e.toString());
-                } finally {
-                    info.signalAll();
-                    info.unlock();
+                } while (!handleReadableData(key, reqId));
+            } catch (FSSException e) {
+                throw e;
+            } catch (IOException e) { //Maybe is remote side force disconnect.
+                if (info.getType() == FSSChannelInfo.GET || info.getType() == FSSChannelInfo.SET) {
+                    throw new FSSException(FSSException.REMOTE_FORCE_DISCONNECT, info);
                 }
-                return info.getOutPutStr();
+            } catch (InterruptedException e) {
+                throw new FSSException("handleReadData failed." + e.toString());
+            } finally {
+                info.signalAll();
+                info.unlock();
             }
+            return info.getOutPutStr();
+        }
         throw new FSSException(info.toString() + " execute channel problem.");
     }
 
     public static String execute(String ip, Object serviceId, String cmd) throws IOException, InterruptedException, FSSException {
         FSSChannelInfo info = new FSSChannelInfo(serviceId, ip, FSSChannelInfo.EXT);
         SelectionKey key = register(info);
+        Tool.printDebugMsg(info.toString());
+        Tool.printDebugMsg("cmd:" + cmd);
         try {
             info.lock();
             info.reset();
@@ -178,8 +179,9 @@ public class FSSSocketManager implements Runnable {
 
     @Override
     public void run() {
-        try {
-            for (; ; ) {
+
+        for (; ; ) {
+            try {
                 while (selector.select() > 0) {
                     Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
                     while (iterator.hasNext()) {
@@ -205,38 +207,57 @@ public class FSSSocketManager implements Runnable {
                 } finally {
                     registerLock.unlock();
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+                Tool.printErrorMsg("Selector thread shutdown. Going to rebuild selector.", e);
+                rebuildSelector();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            Tool.printErrorMsg("Selector thread shutdown. ", e);
         }
+
     }
 
-    //If need to relaunch selector
-    public static void rebuildSelector() throws IOException {
-        final Selector oldSelector = selector;
-        final Selector newSelector;
-        newSelector = Selector.open();
-
+    public static void rebuildSelector() {
+        Selector oldSelector = selector;
+        Selector newSelector;
         for (; ; ) {
             try {
-                for (SelectionKey key : oldSelector.keys()) {
-                    Object info = key.attachment();
-                    if (!key.isValid() || key.channel().keyFor(newSelector) != null) {
+                newSelector = Selector.open();
+                Tool.printDebugMsg("Open new selector succ.");
+                /* Migrate all channel from old to new selector */
+                for (; ; ) {
+                    try {
+                        for (SelectionKey key : oldSelector.keys()) {
+                            Object info = key.attachment();
+                            if (!key.isValid() || key.channel().keyFor(newSelector) != null) {
+                                continue;
+                            }
+                            int interestOps = key.interestOps();
+                            key.cancel();
+                            key.channel().register(newSelector, interestOps, info);
+                        }
+                    } catch (ConcurrentModificationException e) {
+                        Tool.printDebugMsg("ConcurrentModificationException.");
+                        // Probably due to concurrent modification of the key set.
                         continue;
                     }
-                    int interestOps = key.interestOps();
-                    key.cancel();
-                    key.channel().register(newSelector, interestOps, info);
+                    break;
                 }
-            } catch (ConcurrentModificationException e) {
-                // Probably due to concurrent modification of the key set.
+                Tool.printDebugMsg("Migrate channels to new selector finished.");
+                selector = newSelector;
+                oldSelector.close();
+            } catch (Exception e) {
+                /* Rebuild failed keep rebuilding */
+                try {
+                    Tool.printErrorMsg("Rebuild selector failed. Retry after 60 secs.");
+                    Thread.sleep(60000);
+                } catch (InterruptedException e1) {
+                    Tool.printErrorMsg("Rebuild selector failed. Interrupted.");
+                    e1.printStackTrace();
+                }
                 continue;
             }
             break;
         }
-        selector = newSelector;
-        oldSelector.close();
     }
 
     public static boolean handleReadableData(SelectionKey key, long reqId) throws IOException, FSSException {
@@ -246,12 +267,10 @@ public class FSSSocketManager implements Runnable {
         readBuff.clear();
 
         //Read data and combine with left data
-        byte[] tmpBuff = new byte[ channel.read(readBuff)]; //Might happen remote force disconnect problem
-//        Tool.printErrorMsg("length:"+tmpBuff.length);
-        if(tmpBuff.length == 0) return false;
+        byte[] tmpBuff = new byte[channel.read(readBuff)]; //Might happen remote force disconnect problem
+        if (tmpBuff.length == 0) return false;
         readBuff.flip();
         readBuff.get(tmpBuff, 0, tmpBuff.length);
-//        Tool.printErrorMsg(Tool.getHexBytesString(tmpBuff));
         int dataTotalLength = 0;
         byte[] preData = info.getResult();
         byte[] result;
@@ -261,14 +280,14 @@ public class FSSSocketManager implements Runnable {
 
         //Check header
         int headerStart;
-        while((result.length) > FSSCommander.BASESIZE){
-            if(!isSSL && result[0] == (byte) 0xAF && result[1] == (byte) 0xFA){
+        while ((result.length) > FSSCommander.BASESIZE) {
+            if (!isSSL && result[0] == (byte) 0xAF && result[1] == (byte) 0xFA) {
                 dataTotalLength = Tool.getInt(result, 8, 4);
                 break;
-            }else if((headerStart = Tool.getArrIdx(result, FSSCommander.MAGIC)) != -1){
+            } else if ((headerStart = Tool.getArrIdx(result, FSSCommander.MAGIC)) != -1) {
                 info.setResult(Arrays.copyOfRange(result, headerStart, result.length));
                 Tool.printInfoMsg("Research header magic succ.");
-            }else{
+            } else {
                 Tool.printErrorMsg("Research header failed.");
                 break;
             }
@@ -276,12 +295,10 @@ public class FSSSocketManager implements Runnable {
 
         //Check data
         info.setResult(result);
-        if(dataTotalLength != 0 && dataTotalLength <= result.length){
-            if(reqId == Tool.getInt(result, FSSCommander.REQ_ID_OFFSET, 4)){
-//                Tool.printErrorMsg("Finish dataTotalLength:"+ dataTotalLength + " resultLength:" + result.length);
-//                Tool.printErrorMsg(info.getOutPutStr());
+        if (dataTotalLength != 0 && dataTotalLength <= result.length) {
+            if (reqId == Tool.getInt(result, FSSCommander.REQ_ID_OFFSET, 4)) {
                 return true;
-            }else{
+            } else {
                 //Discard previous resp
                 info.setResult(Arrays.copyOfRange(result, dataTotalLength, result.length));
                 Tool.printInfoMsg("handleReadData discard previous resp.");
@@ -295,13 +312,13 @@ public class FSSSocketManager implements Runnable {
     public static JSONObject getDebugInfo() {
         JSONObject obj = new JSONObject();
         JSONArray channels = new JSONArray();
-        try{
+        try {
             for (SelectionKey key : selector.keys()) {
                 channels.put(key.attachment().toString());
             }
             obj.put("channels", channels);
             obj.put("registerLock", registerLock.isLocked());
-        }catch (Exception e){
+        } catch (Exception e) {
             Tool.printErrorMsg("Debug log failed.", e);
         }
         return obj;
