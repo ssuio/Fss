@@ -130,6 +130,7 @@ public class FSSSocketManager implements Runnable {
                 info.signalAll();
                 info.unlock();
             }
+            Tool.printDebugMsg("output:" + info.getOutPutStr());
             return info.getOutPutStr();
         }
         throw new FSSException(info.toString() + " execute channel problem.");
@@ -160,6 +161,7 @@ public class FSSSocketManager implements Runnable {
             key.channel().close();
             key.cancel();
         }
+        Tool.printDebugMsg("output:" + info.getOutPutStr());
         return info.getOutPutStr();
     }
 
