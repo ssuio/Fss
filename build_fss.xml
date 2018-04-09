@@ -5,14 +5,14 @@
     <!--define folder properties-->
 	<property name="debuglevel" value="source,lines,vars"/>
 	<property name="javacdebug" value="true"/>
-	<property name="tempFolder" value="/usr/local/InfortrendPlugin"/>
+	<property name="tempFolder" value="/home/buildcode/workspace/VMTest/projects"/>
 	<property name="source" value="1.7"/>
 	<property name="target" value="1.7"/>
-	<property name="targetFolder" value="/usr/local/InfortrendPlugin/jars"/>
+	<property name="targetFolder" value="${tempFolder}/jars"/>
 	<property name="ndmp-java_outband.location" value="${tempFolder}/ndmp-java"/>
 	<property name="autoraidclass.location" value="${tempFolder}/autoraidclass"/>
 	<property name="fss.location" value="${tempFolder}/FSS"/>
-	<property name="Library.location" value="/usr/local/InfortrendPlugin/Library"/>
+	<property name="Library.location" value="/opt/sw_release/Library"/>
 	
 	<path id="autoraidclass.classpath">
 		<pathelement location="${autoraidclass.location}/bin"/>
