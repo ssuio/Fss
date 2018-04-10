@@ -11,7 +11,7 @@
 	<property name="targetFolder" value="${tempFolder}/jars"/>
 	<property name="ndmp-java_outband.location" value="${tempFolder}/ndmp-java"/>
 	<property name="autoraidclass.location" value="${tempFolder}/autoraidclass"/>
-	<property name="fss.location" value="${tempFolder}/FSS"/>
+	<property name="fss.location" value="${tempFolder}/fss"/>
 	<property name="Library.location" value="/opt/sw_release/Library"/>
 	
 	<path id="autoraidclass.classpath">
