@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project basedir="." name="jar_fss">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--JAVA 1.7 is required                                        -->
+    <!--define folder properties-->
+	<property name="debuglevel" value="source,lines,vars"/>
+	<property name="javacdebug" value="true"/>
+	<property name="tempFolder" value="/home/buildcode/workspace/VMTest/projects"/>
+	<property name="source" value="1.7"/>
+	<property name="target" value="1.7"/>
+	<property name="targetFolder" value="${tempFolder}/jars"/>
+	<property name="ndmp-java_outband.location" value="${tempFolder}/ndmp-java"/>
+	<property name="autoraidclass.location" value="${tempFolder}/autoraidclass"/>
+	<property name="fss.location" value="${tempFolder}/fss"/>
+	<property name="Library.location" value="/opt/sw_release/Library"/>
+	
+	<path id="autoraidclass.classpath">
+		<pathelement location="${autoraidclass.location}/bin"/>
+		<pathelement location="${lib_location}/jbcl.jar"/>
+		<pathelement location="${autoraidclass.location}/lib/log4j.jar"/>
+		<pathelement location="${autoraidclass.location}/lib/apache-poi/commons-collections4-4.1.jar"/>
+		<pathelement location="${autoraidclass.location}/lib/apache-poi/commons-net-3.5.jar"/>
+		<pathelement location="${autoraidclass.location}/lib/apache-poi/poi-3.15.jar"/>
+		<pathelement location="${autoraidclass.location}/lib/apache-poi/poi-ooxml-3.15.jar"/>
+		<pathelement location="${autoraidclass.location}/lib/apache-poi/poi-ooxml-schemas-3.15.jar"/>
+		<pathelement location="${autoraidclass.location}/lib/apache-poi/xmlbeans-2.6.0.jar"/>
+		<pathelement location="${autoraidclass.location}/lib/ssl/cryptix-asn1.jar"/>
+		<pathelement location="${autoraidclass.location}/lib/ssl/cryptix.jar"/>
+		<pathelement location="${autoraidclass.location}/lib/ssl/ptls.jar"/>
+		<pathelement location="${Library.location}/library/dom4j-1.6.1.jar"/>
+	</path>
+	
+	<path id="ndmp-java_outband.classpath">
+		<pathelement location="${ndmp-java_outband.location}/bin"/>
+		<pathelement location="${lib_location}/jbcl.jar"/>
+		<pathelement location="${lib_location}/l2fprod-common-all.jar"/>
+		<pathelement location="${lib_location}/log4j.jar"/>
+		<pathelement location="${lib_location}/newRAIDMgr.jar"/>
+		<pathelement location="${Library.location}/library/jmf.jar"/>
+		<pathelement location="${Library.location}/jersey-json-1.12.jar"/>
+		<pathelement location="${Library.location}/jersey-core-1.12.jar"/>
+		<path refid="autoraidclass.classpath"/>
+	</path>
+	
+	<path id="fss.classpath">
+		<pathelement location="${fss.location}/bin"/>
+		<pathelement location="${Library.location}/javassist.jar"/>
+		<pathelement location="${Library.location}/guava-18.0.jar"/>
+		<pathelement location="${Library.location}/reflections-0.9.10.jar"/>
+		
+		<path refid="autoraidclass.classpath"/>
+		<path refid="ndmp-java_outband.classpath"/>
+	</path>
+
+	<target name="init_fss" unless="nobuild">
+		<mkdir dir="${fss.location}/bin"/>
+		<copy includeemptydirs="false" todir="${fss.location}/bin">
+			<fileset dir="${fss.location}/src">
+				<exclude name="**/*.launch"/>
+				<exclude name="**/*.java"/>
+				<exclude name="**/*.class"/>
+			</fileset>
+		</copy>
+	</target>
+	
+	<target depends="init_fss" name="build_fss" unless="nobuild">
+		<javac debug="${javacdebug}" debuglevel="${debuglevel}" destdir="${fss.location}/bin" source="${source}" target="${target}" encoding="utf-8">
+			<src path="${fss.location}/src/main/java"/>
+			<classpath refid="fss.classpath"/>
+		</javac>
+	</target>
+
+	<target depends="build_fss" name="jar_fss">
+		<jar destfile="${targetFolder}/fss.jar" duplicate="preserve">
+			<fileset dir="${fss.location}/bin"/>
+			<zipfileset src="${Library.location}/javassist.jar"/>
+			<zipfileset src="${Library.location}/guava-18.0.jar"/>
+			<zipfileset src="${Library.location}/reflections-0.9.10.jar"/>
+			<manifest>
+				<attribute name="Created-By" value="IFT"/>
+			</manifest>
+		</jar>
+	</target>
+
+</project>
+
