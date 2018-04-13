@@ -10,9 +10,12 @@ repositories {
 }
 
 dependencies {
+    compile project(':autoraidclass')
+    compile group: 'org.javassist', name: 'javassist', version: '3.18.0-GA'
+    compile group: 'com.google.guava', name: 'guava', version: '18.0'
     compile group: 'org.reflections', name: 'reflections', version: '0.9.10'
-    compile group: 'org.json', name: 'json', version: '20160810'
     compile group: 'log4j', name: 'log4j', version: '1.2.17'
+//    compile group: 'org.json', name: 'json', version: '20160810'
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
