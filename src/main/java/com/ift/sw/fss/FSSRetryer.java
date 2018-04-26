@@ -2,7 +2,6 @@ package com.ift.sw.fss;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -42,13 +41,11 @@ public class FSSRetryer extends ReentrantLock implements Runnable {
                 e.printStackTrace();
                 Tool.printErrorMsg("Retry failed. Sleep 10 minutes.", e);
                 try {
-                    con.await(600 * 1000, TimeUnit.MILLISECONDS); //Retry failed wait 10 mins.
+                    Thread.sleep(10 * 60 * 1000);
                 } catch (InterruptedException e1) {
                     e1.printStackTrace();
                     Tool.printErrorMsg(info.toString() + " interrupted exception.", e1);
                 }
-            } finally {
-                this.unlock();
             }
         }
         if (info != null) {
@@ -57,12 +54,14 @@ public class FSSRetryer extends ReentrantLock implements Runnable {
     }
 
     public void addRetryInfo(Object info) {
-        try{
+        try {
             this.lock();
-            infoQueue.add(info);
-            isRetrying = true;
-            Tool.printInfoMsg(info.toString() + " add into retry queue");
-        }finally {
+            if(!infoQueue.contains(info)){
+                infoQueue.add(info);
+                isRetrying = true;
+                Tool.printDebugMsg(info.toString() + " add into retry queue");
+            }
+        } finally {
             con.signalAll();
             this.unlock();
         }
@@ -77,10 +76,10 @@ public class FSSRetryer extends ReentrantLock implements Runnable {
     }
 
     public void setRetry(boolean retry) {
-        try{
+        try {
             this.retry = retry;
             this.lock();
-        }finally {
+        } finally {
             con.signalAll();
             this.unlock();
         }
