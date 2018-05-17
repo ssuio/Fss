@@ -54,7 +54,7 @@ public class FSSAgent {
     }
 
     /* General flow */
-    public String execute(String cmd, short cmdType, String slot, int timeout) throws FSSException {
+    public String execute(String cmd, short cmdType, int timeout) throws FSSException {
         try {
             return FSSSocketManager.execute(serviceId, cmdType, cmd, timeout, ip);
         } catch (FSSException e) {
@@ -79,7 +79,6 @@ public class FSSAgent {
             return execute(
                     finalCmd,
                     fssCmd.getCmdType(),
-                    fssCmd.getSlot(),
                     fssCmd.getTimeout()
             );
         }catch (FSSException e){
@@ -98,7 +97,6 @@ public class FSSAgent {
             return execute(
                     serviceId,
                     fssCmd.getCmdType(),
-                    fssCmd.getCmd(),
                     fssCmd.getTimeout()
             );
         } catch (Exception e) {
