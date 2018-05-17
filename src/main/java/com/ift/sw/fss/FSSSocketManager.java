@@ -1,5 +1,6 @@
 package com.ift.sw.fss;
 
+import com.ift.sw.fss.cmd.FSSCmd;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -100,11 +101,25 @@ public class FSSSocketManager implements Runnable {
         }
     }
 
-    public static String execute(Object serviceId, short type, String cmd) throws FSSException {
-        SelectionKey key = getKey(serviceId, type);
+    /* For ext channel */
+    public static String execute(String ip, Object serviceId, String cmd) throws IOException, FSSException {
+        return execute(serviceId, FSSChannelInfo.EXT, cmd, EXT_TIMEOUT, ip);
+    }
+
+    /* General flow */
+    public static String execute(Object serviceId, short type, String cmd, int timeout, String ip) throws FSSException, IOException {
+        return execute(
+                getKey(serviceId, ip, type),
+                cmd,
+                getTimeout(type, timeout)
+        );
+    }
+
+    public static String execute(SelectionKey key, String cmd, int timeout) throws FSSException, IOException {
         FSSChannelInfo info = (FSSChannelInfo) key.attachment();
         Tool.printDebugMsg(info.toString());
         Tool.printDebugMsg("cmd:" + cmd);
+        Tool.printDebugMsg("timeout:" + timeout);
         SocketChannel channel = (SocketChannel) key.channel();
         if (channel != null && channel.isConnected()) {
             try {
@@ -113,7 +128,7 @@ public class FSSSocketManager implements Runnable {
                 long reqId = info.getReqId();
                 channel.write(ByteBuffer.wrap(FSSCommander.generateFssPacket(cmd, reqId)));
                 do {
-                    if (!info.await(type == FSSChannelInfo.GET ? GET_TIMEOUT : SET_TIMEOUT)) {
+                    if (!info.await(timeout)) {
                         info.reset();
                         throw new FSSException("Cmd timeout", FSSException.CMD_TIMEOUT);
                     }
@@ -129,6 +144,10 @@ public class FSSSocketManager implements Runnable {
             } finally {
                 info.signalAll();
                 info.unlock();
+                if (info.getType() == FSSChannelInfo.EXT) {
+                    key.channel().close();
+                    key.cancel();
+                }
             }
             Tool.printDebugMsg("output:" + info.getOutPutStr());
             return info.getOutPutStr();
@@ -136,47 +155,41 @@ public class FSSSocketManager implements Runnable {
         throw new FSSException(info.toString() + " execute channel problem.");
     }
 
-    public static String execute(String ip, Object serviceId, String cmd) throws IOException, InterruptedException, FSSException {
-        FSSChannelInfo info = new FSSChannelInfo(serviceId, ip, FSSChannelInfo.EXT);
-        SelectionKey key = register(info);
-        Tool.printDebugMsg(info.toString());
-        Tool.printDebugMsg("cmd:" + cmd);
-        try {
-            info.lock();
-            info.reset();
-            long reqId = info.getReqId();
-            ((SocketChannel) key.channel()).write(ByteBuffer.wrap(FSSCommander.generateFssPacket(cmd, reqId)));
-            do {
-                if (!info.await(EXT_TIMEOUT)) {
-                    throw new FSSException("Cmd timeout", FSSException.CMD_TIMEOUT);
-                }
-            } while (!handleReadableData(key, reqId));
-        } catch (FSSException e) {
-            throw e;
-        } catch (Exception e) {
-            Tool.printErrorMsg(info.toString() + " " + cmd + " handleReadableData failed.", e);
-        } finally {
-            info.signalAll();
-            info.unlock();
-            key.channel().close();
-            key.cancel();
+    private static int getTimeout(short type, int timeout) {
+        if (timeout == FSSCmd.UNSET) {
+            if (type == FSSChannelInfo.GET) {
+                return GET_TIMEOUT;
+            } else {
+                return SET_TIMEOUT;
+            }
+        } else {
+            return timeout;
         }
-        Tool.printDebugMsg("output:" + info.getOutPutStr());
-        return info.getOutPutStr();
     }
 
-    private static SelectionKey getKey(Object serviceId, short type) throws FSSException {
-        Iterator<SelectionKey> it = selector.keys().iterator();
-        while (it.hasNext()) {
-            SelectionKey key = it.next();
-            FSSChannelInfo info = (FSSChannelInfo) key.attachment();
-            if (info instanceof FSSChannelInfo) {
-                if (info.getServiceIdObj() == serviceId && info.getType() == type) {
-                    return key;
+    private static SelectionKey getKey(Object serviceId, String ip, short type) throws FSSException {
+        type = FSSCommander.getExecuteCmdType(type);
+        if (type == FSSChannelInfo.EXT) {
+            FSSChannelInfo info = new FSSChannelInfo(serviceId, ip, FSSChannelInfo.EXT);
+            try {
+                return register(info);
+            } catch (IOException e) {
+                Tool.printDebugMsg("getExtKey failed." + info.getOutPutStr(), e);
+                throw new FSSException("Could not find target socket channel.");
+            }
+        } else {
+            Iterator<SelectionKey> it = selector.keys().iterator();
+            while (it.hasNext()) {
+                SelectionKey key = it.next();
+                FSSChannelInfo info = (FSSChannelInfo) key.attachment();
+                if (info instanceof FSSChannelInfo) {
+                    if (info.getServiceIdObj() == serviceId && info.getType() == type) {
+                        return key;
+                    }
                 }
             }
+            throw new FSSException("Could not find target socket channel.");
         }
-        throw new FSSException("Could not find target socket channel.");
     }
 
     @Override

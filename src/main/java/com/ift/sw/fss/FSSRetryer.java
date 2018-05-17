@@ -6,8 +6,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class FSSRetryer extends ReentrantLock implements Runnable {
-    private boolean retry = true;
-    private boolean isRetrying = false;
+    private volatile boolean retry = true;
+    private volatile boolean isRetrying = false;
     private BlockingQueue<Object> infoQueue = new LinkedBlockingQueue<>();
     private Condition con = this.newCondition();
 

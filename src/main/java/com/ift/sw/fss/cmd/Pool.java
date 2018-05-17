@@ -9,6 +9,7 @@ import org.json.JSONObject;
 
 @FSSTag(key = "pool")
 public class Pool extends FSSCmd {
+    public static short CREATE_TIMEOUT = 20 * 60;
     public Pool(FSSAgent fss, String cmd) throws FSSException {
         super(fss, cmd);
     }
@@ -19,6 +20,7 @@ public class Pool extends FSSCmd {
         this.setShowList(true);
         switch (cmdArr[1]) {
             case "create":
+                this.setTimeout(CREATE_TIMEOUT);
             case "destroy":
             case "export":
             case "import":

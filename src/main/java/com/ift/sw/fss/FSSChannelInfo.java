@@ -7,8 +7,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class FSSChannelInfo extends ReentrantLock {
-    public static final short GET = 0;
-    public static final short SET = 1;
+    public static final short SET = 0;
+    public static final short GET = 1;
     public static final short EXT = 2;
     public static final short CLI = 3;
     private Object serviceId;

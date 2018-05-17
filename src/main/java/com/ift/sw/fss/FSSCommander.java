@@ -99,6 +99,10 @@ public class FSSCommander {
         return arrayParms;
     }
 
+    public static short getExecuteCmdType(short type){
+        return type == FSSCmd.NONE ? FSSCmd.EXT : type;
+    }
+
     public static byte[] generateFssPacket(String cmd, long reqId) {
         byte[] bArrnew = new byte[BASESIZE + cmd.length()];
         setHeader(bArrnew, BASESIZE + cmd.length(), reqId);

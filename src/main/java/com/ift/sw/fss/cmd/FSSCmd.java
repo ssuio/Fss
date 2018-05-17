@@ -20,10 +20,12 @@ public abstract class FSSCmd {
     public static final short GENERAL_OUTPUT = 0;
     public static final short DYNAMIC_KEY_OUTPUT = 1;
     public static final short CHKHOST_OUTPUT = 2;
+    public static final int UNSET = -1;
     private short outPutType = GENERAL_OUTPUT;
     private int ops = 0;
     protected FSSAgent fss;
     protected short cmdType = NONE;
+    protected int timeout = UNSET;
     protected String cmd;
     protected String[] cmdArr;
     protected String slot = FSSCommander.BOTH_SLOT;
@@ -61,6 +63,15 @@ public abstract class FSSCmd {
         this.cmdType = cmdType;
         return this;
     }
+
+    public void setTimeout(int timeout){
+        this.timeout = timeout;
+    }
+
+    public int getTimeout(){
+        return this.timeout;
+    }
+
 
     public short getCmdType() {
         return cmdType;

@@ -43,12 +43,20 @@ public class FSSAgent {
         Tool.printInfoMsg(info.toString() + " registered.");
     }
 
-    public String execute(String cmd, short cmdType, String slot) throws FSSException {
+    /* Get original response from NAS */
+    public String execute(String cmd, String slot) throws FSSException {
         try {
             String finalCmd = FSSCommander.formatFSSCmd(cmd, slot, serviceId);
-            return cmdType == FSSChannelInfo.EXT ?
-                    FSSSocketManager.execute(ip, serviceId, finalCmd) :
-                    FSSSocketManager.execute(serviceId, cmdType, finalCmd);
+            return FSSSocketManager.execute(ip, serviceId, finalCmd);
+        } catch (Exception e) {
+            throw new FSSException("Fss cmd execute failed.");
+        }
+    }
+
+    /* General flow */
+    public String execute(String cmd, short cmdType, String slot, int timeout) throws FSSException {
+        try {
+            return FSSSocketManager.execute(serviceId, cmdType, cmd, timeout, ip);
         } catch (FSSException e) {
             if (e.getErrorCode() == FSSException.REMOTE_FORCE_DISCONNECT) {
                 if (e.getInfo().getType() == FSSChannelInfo.GET || e.getInfo().getType() == FSSChannelInfo.SET) {
@@ -61,32 +69,41 @@ public class FSSAgent {
         }
     }
 
-    public String execute(String cmd, String slot) throws FSSException {
-        try {
+    /* General flow */
+    public String execute(FSSCmd fssCmd) throws FSSException {
+        try{
+            /* Format cmd by slot */
+            String cmd = fssCmd.getCmd();
+            String slot = fssCmd.getSlot();
             String finalCmd = FSSCommander.formatFSSCmd(cmd, slot, serviceId);
-            return FSSSocketManager.execute(ip, serviceId, finalCmd);
-        } catch (Exception e) {
+            return execute(
+                    finalCmd,
+                    fssCmd.getCmdType(),
+                    fssCmd.getSlot(),
+                    fssCmd.getTimeout()
+            );
+        }catch (FSSException e){
+            if (e.getInfo().getType() == FSSChannelInfo.GET || e.getInfo().getType() == FSSChannelInfo.SET) {
+                retryer.addRetryInfo(e.getInfo());
+            }
+            throw e;
+        }catch (Exception e) {
             throw new FSSException("Fss cmd execute failed.");
         }
     }
 
-    public String execute(FSSCmd fssCmd) throws FSSException {
-        return execute(fssCmd.getCmd(),
-                fssCmd.getCmdType() == FSSCmd.NONE ? FSSCmd.EXT : fssCmd.getCmdType(),
-                fssCmd.getSlot());
-    }
-
+    /* Without format cmd by slot, directly execute cmdStr */
     public String executeDirectly(FSSCmd fssCmd) throws FSSException {
-        short cmdType = fssCmd.getCmdType();
-        String oriResp;
         try {
-            oriResp = cmdType == FSSChannelInfo.EXT ?
-                    FSSSocketManager.execute(ip, serviceId, fssCmd.getCmd()) :
-                    FSSSocketManager.execute(serviceId, cmdType, fssCmd.getCmd());
+            return execute(
+                    serviceId,
+                    fssCmd.getCmdType(),
+                    fssCmd.getCmd(),
+                    fssCmd.getTimeout()
+            );
         } catch (Exception e) {
             throw new FSSException("Execute cmd directly failed.");
         }
-        return oriResp;
     }
 
     public void close() {
